@@ -58,7 +58,7 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     if fault!='none' and mode!='demo': raise ValueError('Fault injection is demo-only')
     question=question.strip(); start=time.monotonic(); trace=[]; limits=[]; calls=0; model_calls=0
     fixture=FixtureTools(fault) if mode=='demo' else None
-    available={'wiki','github','web'} if mode=='demo' else {'wiki','github'}|({'web'} if os.getenv('BRAVE_API_KEY') else set())
+    available={'wiki','github','web'} if mode=='demo' else {'wiki','github'}|({'web'} if os.getenv('TAVILY_API_KEY') else set())
     if adapters is not None: available=set(adapters)
     steps=plan(question,available)
     if not steps: raise ValueError('No research tools configured')
@@ -137,7 +137,7 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     if len(sources)<2: limits.append('Fewer than two usable sources; cannot establish a robust answer.')
     if requested and len(sources)<int(requested.group(1)):
         limits.append('Requested result count exceeds usable evidence count; coverage is incomplete.'); status='partial' if findings else status; confidence='low'
-    if mode=='live' and 'web' not in available: limits.append('Broad web search disabled; configure BRAVE_API_KEY for general research.'); status='partial' if findings else status; confidence='low'
+    if mode=='live' and 'web' not in available: limits.append('Broad web search disabled; configure TAVILY_API_KEY for general research.'); status='partial' if findings else status; confidence='low'
     if status=='partial' and len(sources)<2: confidence='low'
     short=' '.join(f'{f.statement} [{f.source_ids[0]}]' for f in findings[:3]) if findings else 'Insufficient verified evidence to answer this question safely.'
     trace.append({'stage':'verify','status':'ok','linked_findings':len(findings),'confidence':confidence})

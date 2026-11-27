@@ -13,7 +13,7 @@ MAX_BODY = 4096
 
 
 def capabilities():
-    web = bool(os.getenv('BRAVE_API_KEY'))
+    web = bool(os.getenv('TAVILY_API_KEY'))
     model = bool(os.getenv('GROQ_API_KEY'))
     return {'demo': True, 'live': web or model,
             'access_code_required': False, 'providers': {'github': True, 'wiki': True,

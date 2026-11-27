@@ -17,3 +17,7 @@ Actual Git commits represent grouped checkpoints, not fictional historical miles
 ## CP11 — Groq migration and public live mode
 
 Replaced the model API with Groq's Chat Completions endpoint; default `openai/gpt-oss-120b` is served by Groq, not OpenAI API. Removed the access-code gate and UI input at the user's request. Added provider-contract and public-live regression tests. Live calls remain unverified until credentials are configured. Public usage is bounded per run but has no distributed rate limit; configure provider limits before sharing widely.
+
+## CP12 — Tavily web search
+
+Replaced Brave with Tavily basic search using `TAVILY_API_KEY`. Retained the `web` tool identity, planner, fixtures, and evidence validation. Automatic search-depth selection and provider-generated answers are disabled. Added request-contract, missing-key, and malformed-response tests.

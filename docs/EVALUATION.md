@@ -38,7 +38,7 @@ The initial scenario run was 10/11: the HR filter dropped one relevant record be
 
 ## What did not / not established
 
-- Live public API requests failed DNS resolution in this environment. Actual GitHub, Wikipedia and Brave integration success is unverified; the historical live network check correctly abstained. The original model provider was OpenAI; CP11 migrated to Groq with mocked contract tests. No live Groq or Brave credentialed test has been completed. Live mode is not silently replaced by demo mode.
+- Live public API requests failed DNS resolution in this environment. Actual GitHub, Wikipedia and original Brave integration success was unverified; the historical live network check correctly abstained. The original model provider was OpenAI; CP11 migrated to Groq with mocked contract tests. CP12 replaces Brave with Tavily basic search and adds mocked adapter tests. No live Groq or Tavily credentialed test is recorded in this historical evaluation. Live mode is not silently replaced by demo mode.
 - Source content is authored fixture material rather than a verified snapshot; no claim of factual accuracy, company startup status, source freshness, market rankings, or benchmark performance is justified. Lexical relevance and simple injection matching are imperfect. Source count is a proxy, not proof of requested entity count.
 - The optional LLM selects spans rather than producing rich free-form analytical synthesis. This trades fluency for verifiability. No end-to-end LLM quality, semantic entailment, calibration, load or cost benchmark has been measured.
 - Local elapsed times do not measure production network latency. Socket timeout is not a global deadline.

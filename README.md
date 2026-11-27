@@ -21,14 +21,14 @@ Default `demo` mode searches a local, authored fixture corpus. It is not a live 
 
 ```bash
 # macOS/Linux; on Windows PowerShell use $env:NAME = 'value'
-export BRAVE_API_KEY='your-key'       # optional; recommended for general research
+export TAVILY_API_KEY='your-key'       # optional; recommended for general research
 export GROQ_API_KEY='your-key'      # optional; enables model-based span selection
 export GROQ_MODEL='openai/gpt-oss-120b'     # configurable; use a model supporting JSON mode
 # export GITHUB_TOKEN='your-token'   # optional; increases GitHub API quota
 python -m veritas "Compare vector databases for RAG" --mode live --json
 ```
 
-Wikipedia and GitHub use public REST endpoints; Brave Search uses its subscription API. Without Brave the general research coverage is limited, and without Groq the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The Groq response contract is tested with a mock; no live Groq call has been verified. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
+Wikipedia and GitHub use public REST endpoints; Tavily Search uses its API with basic search depth and automatic depth selection disabled to limit credit usage. Without Tavily the general research coverage is limited, and without Groq the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The Groq response contract is tested with a mock; no live Groq call has been verified. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
 
 ## Architecture
 
@@ -51,7 +51,7 @@ flowchart TD
 
 **Why an agent?** The information needed is not known in advance. The next retrieval action depends on the question and the evidence returned. A fixed chat prompt cannot independently recover from a failed provider. This is a constrained single agent, not a multi-agent system; deterministic routing is easier to inspect and test than a fully autonomous model loop. Its adaptive behavior is conditional replanning, not a claim of autonomous reasoning.
 
-**Tools:** GitHub search for repository descriptions; Wikipedia for background and concepts; Brave Search for broader research and official positioning. Business questions prefer web search, technical questions include repository search, and general questions prefer background/broad discovery. Routing uses keywords and a small set of domain-specific anchors; unfamiliar or multilingual questions can be misrouted.
+**Tools:** GitHub search for repository descriptions; Wikipedia for background and concepts; Tavily Search for broader research and official positioning. Business questions prefer web search, technical questions include repository search, and general questions prefer background/broad discovery. Routing uses keywords and a small set of domain-specific anchors; unfamiliar or multilingual questions can be misrouted.
 
 **Data flow:** `Step`, `Evidence`, `Finding`, and `Report` dataclasses define the output contract. `planner.py` proposes up to three initial steps. `agent.py` executes them concurrently, normalizes rows, rejects malformed entries, invalid URL schemes/hosts, obvious injection phrases, and weak lexical matches, then deduplicates by normalized URL and ranks using relevance and domain diversity. If unique evidence falls below the target, it tries one additional query/tool. The model, when enabled, only proposes exact source spans; it has no tool execution or credential access. A deterministic validator checks each ID and passage against retrieved evidence. Invalid output falls back to extractive findings. No model-generated URLs or free-form factual claims are accepted. The short answer combines a few findings; all retained findings are individually cited. The source gate is structural, not a truth/entailment proof.
 
@@ -101,7 +101,7 @@ Deployment: import this repository into Vercel; the root `vercel.json` configure
 | Variable | Purpose |
 |---|---|
 | `GROQ_API_KEY` | Optional model-based evidence span selection |
-| `BRAVE_API_KEY` | Broad live web search; recommended |
+| `TAVILY_API_KEY` | Broad live web search via Tavily; recommended |
 | `GROQ_MODEL` | Optional, defaults to `openai/gpt-oss-120b` |
 
 Adding either provider key enables public live research with no access code; add both for broad web search and model-assisted evidence selection. The default open-weight GPT-OSS 120B model is hosted by Groq and uses only GROQ_API_KEY; GROQ_MODEL can override it with another supported JSON-mode model. Keys remain server-side. Per-run limits remain in place, but there is no distributed rate limiting or authentication: configure provider quotas/spend limits and Vercel abuse protections before sharing widely. Demo mode remains available. Historical evaluation metrics are fixture-based, not factual-accuracy claims.

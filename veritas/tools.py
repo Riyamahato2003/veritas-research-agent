@@ -42,16 +42,21 @@ def github(query, timeout=4):
     if not isinstance(data,dict) or not isinstance(data.get('items'),list): raise ToolError('malformed_schema')
     return [{'title':p.get('full_name'),'url':p.get('html_url'),'text':p.get('description')} for p in data['items'] if isinstance(p,dict)]
 
-def brave(query, timeout=4):
-    key=os.getenv('BRAVE_API_KEY')
-    if not key: raise ToolError('missing_brave_key')
-    data=request_json('https://api.search.brave.com/res/v1/web/search',{'q':query,'count':5},{'X-Subscription-Token':key},timeout=timeout)
-    if not isinstance(data,dict): raise ToolError('malformed_schema')
-    items=data.get('web',{}).get('results',[])
-    if not isinstance(items,list): raise ToolError('malformed_schema')
-    return [{'title':p.get('title'),'url':p.get('url'),'text':p.get('description')} for p in items if isinstance(p,dict)]
+def tavily(query, timeout=4):
+    key=os.getenv('TAVILY_API_KEY')
+    if not key: raise ToolError('missing_tavily_key')
+    data=request_json('https://api.tavily.com/search',
+        headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'},
+        payload={'query':query[:400], 'search_depth':'basic', 'max_results':5,
+                 'auto_parameters':False, 'include_answer':False,
+                 'include_raw_content':False, 'include_images':False},
+        timeout=timeout)
+    if not isinstance(data,dict) or not isinstance(data.get('results'),list):
+        raise ToolError('malformed_schema')
+    return [{'title':p.get('title'),'url':p.get('url'),'text':p.get('content')}
+            for p in data['results'] if isinstance(p,dict)]
 
-LIVE={'wiki':wiki,'github':github,'web':brave}
+LIVE={'wiki':wiki,'github':github,'web':tavily}
 
 class FixtureTools:
     """Search a small, explicitly authored local test corpus. Faults are opt-in."""

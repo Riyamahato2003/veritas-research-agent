@@ -41,8 +41,8 @@ class WebTests(unittest.TestCase):
                 self.assertEqual(request_report({'question': Q, 'mode': 'live'})[0],200)
                 run.assert_called_once_with(Q,'live','none',True)
 
-    def test_public_live_with_brave(self):
-        with patch.dict(os.environ, {'BRAVE_API_KEY':'example-key','VERITAS_LIVE_ACCESS_CODE':'old-code'}, clear=True):
+    def test_public_live_with_tavily(self):
+        with patch.dict(os.environ, {'TAVILY_API_KEY':'example-key','VERITAS_LIVE_ACCESS_CODE':'old-code'}, clear=True):
             self.assertTrue(capabilities()['live'])
             self.assertFalse(capabilities()['access_code_required'])
             self.assertTrue(capabilities()['providers']['web'])
