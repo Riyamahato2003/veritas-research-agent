@@ -6,7 +6,7 @@ This report separates deterministic contract/failure tests from live-provider re
 
 ## Automated checks
 
-Local Python 3.13 run: **67/67 unit and adapter tests passed**; **11/11 scenario checks passed**; baseline comparison completed. Reproduce from the repository root:
+Local Python 3.13 run: **68/68 unit and adapter tests passed**; **11/11 scenario checks passed**; baseline comparison completed. Reproduce from the repository root:
 
 ```bash
 python -m unittest discover -s tests -v
@@ -37,7 +37,9 @@ These two calls ran on deployed `cp30-prototype`, before the candidate-attributi
 | Compare the top 3 open-source vector databases for a startup building RAG products | Three defensible candidates, comparable technical/practical tradeoffs, citations for each claim, no absolute ranking without a method | Partial; Qdrant, Weaviate, Milvus discovered; 3/3 candidates had some reviewed claim; 5/9 criterion slots; 0/3 fully covered; 8/18 claims accepted; 12,888 reported tokens; 4 searches + 1 extract estimate; 8.85 s | Retrieval and all 5 Groq calls succeeded; citations resolved; provider health was OK; rejected 10 proposed claims | The short answer made a claim about Qdrant hybrid search/reranking using a passage whose source context was about LanceDB. The reviewer accepted the cross-entity attribution. It also reported medium confidence with incomplete coverage. No absolute ranking or complete comparison was established. |
 | Find 5 Indian B2B SaaS startups in HR tech and summarize positioning | Five distinct companies with explicit supported eligibility and positioning | Partial; 5 candidates discovered, 4 had reviewed claims, 3/5 fully covered, 7/20 claims accepted; 11,693 reported tokens; 4 searches + 1 extract estimate; 8.77 s | Web search, extraction and all 5 model calls succeeded; four companies received cited positioning claims; 13 claims were rejected | Only four entities appeared in the short answer; Darwinbox had no accepted claim. Eligibility and startup status were not independently established; retrieved pages included secondary lists and broad SaaS material. Medium confidence overstated the incomplete result. |
 
-The 2026-11-27 corrections require candidate-specific citations to name the candidate in every cited passage or its title, and show low confidence for incomplete coverage or degraded provider health. The rule is intentionally conservative and can reject useful generic evidence. It cannot prove entailment, establish startup eligibility, or guarantee source truth. Final deployed observations are recorded below after release verification.
+The first correction release required candidate-specific citations to name the candidate in every cited passage or its title, and showed low confidence for incomplete coverage. A repeat vector run found a different cross-entity error: one source passage named Qdrant, Milvus and Weaviate together, then assigned the high-availability caveat specifically to Milvus; the model attached that caveat to Qdrant. That run was partial with low confidence, covered 7/9 criterion slots, fully covered 1/3 candidates, accepted 7/17 proposals, used 4 searches plus 1 extract estimate, reported 12,657 tokens, and took 9.36 s. All 5 model calls succeeded. This demonstrated that passage-level co-mention checks are not enough.
+
+The next correction requires every candidate claim to repeat its subject and rejects claims whose feature wording overlaps a different candidate's explicitly named possessive or verb-owned clause in the same passage. This remains a conservative lexical heuristic: it can reject relevant evidence and does not prove entailment or source accuracy. A final live evaluation against the second correction release is recorded below.
 
 ## Remaining evaluation limits
 

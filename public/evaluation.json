@@ -70,7 +70,7 @@
       "confidence": "low",
       "source_count": 4,
       "tool_attempts": 4,
-      "elapsed_ms": 154
+      "elapsed_ms": 155
     },
     {
       "id": "outage",
@@ -82,7 +82,7 @@
       "confidence": "low",
       "source_count": 0,
       "tool_attempts": 8,
-      "elapsed_ms": 312
+      "elapsed_ms": 307
     },
     {
       "id": "malformed",
@@ -94,7 +94,7 @@
       "confidence": "low",
       "source_count": 4,
       "tool_attempts": 3,
-      "elapsed_ms": 2
+      "elapsed_ms": 1
     },
     {
       "id": "injection",
@@ -106,7 +106,7 @@
       "confidence": "low",
       "source_count": 6,
       "tool_attempts": 3,
-      "elapsed_ms": 2
+      "elapsed_ms": 1
     },
     {
       "id": "noise",
@@ -118,7 +118,7 @@
       "confidence": "low",
       "source_count": 6,
       "tool_attempts": 3,
-      "elapsed_ms": 2
+      "elapsed_ms": 1
     },
     {
       "id": "transient",
@@ -130,7 +130,7 @@
       "confidence": "low",
       "source_count": 6,
       "tool_attempts": 6,
-      "elapsed_ms": 158
+      "elapsed_ms": 151
     }
   ],
   "baseline": [

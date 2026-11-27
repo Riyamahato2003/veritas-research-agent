@@ -37,6 +37,21 @@ class V2Tests(unittest.TestCase):
         valid,_,audit=validate(proposal,idx,intent,list(idx.passages))
         self.assertFalse(valid)
         self.assertEqual(audit['rejections'],{'passage_entity_mismatch':1})
+    def test_candidate_claim_rejects_feature_owned_by_another_entity(self):
+        q='Compare open-source vector databases Qdrant, Milvus, and Weaviate.'
+        text=('Qdrant, Milvus, and Weaviate ship replication and RBAC in their open-source builds, '
+              "with the caveat that Milvus's high availability lives in the heavier distributed mode, not the standalone build.")
+        idx=Index(q); idx.add([{'title':'Vector database comparison','url':'https://bench.example/vector-databases','text':text}],'web',q)
+        p=next(iter(idx.passages.values())); intent=intent_from(q,None)
+        proposal={'sections':[{'label':'Qdrant','category':'candidate','claims':[{'statement':'Qdrant high availability requires the heavier distributed mode, not the standalone build.','requirement_id':'R2','passage_ids':[p.id]}]},
+                             {'label':'Milvus','category':'candidate','claims':[]},{'label':'Weaviate','category':'candidate','claims':[]}]}
+        valid,_,audit=validate(proposal,idx,intent,list(idx.passages))
+        self.assertFalse(valid)
+        self.assertEqual(audit['rejections'],{'feature_owned_by_other_entity':1})
+        proposal['sections'][0]['claims'][0]['statement']='High availability requires the heavier distributed mode.'
+        valid,_,audit=validate(proposal,idx,intent,list(idx.passages))
+        self.assertFalse(valid)
+        self.assertEqual(audit['rejections'],{'claim_subject_missing':1})
     def test_reviewer_fail_closed(self):
         c={'id':'C1'}
         self.assertEqual(review([c],{'verdicts':[{'id':'C1','supported':True},{'id':'C1','supported':True}]}),([],{'duplicate_verdict':1}))

@@ -173,6 +173,8 @@ def validate(proposal,index,intent,allowed):
     def reject(r): audit['rejections'][r]=audit['rejections'].get(r,0)+1
     if not isinstance(proposal,dict) or not isinstance(proposal.get('sections'),list):
         reject('invalid_schema'); return claims,labels,audit
+    candidate_names=list(dict.fromkeys(sec.get('label').strip() for sec in proposal['sections'][:10]
+        if isinstance(sec,dict) and sec.get('category')=='candidate' and isinstance(sec.get('label'),str) and 2<=len(sec['label'].strip())<=90))
     facets={x['id'] for x in intent['facets']}; allowed=set(allowed)
     audit['raw_sections']=len(proposal['sections'])
     for sec in proposal['sections'][:10]:
@@ -196,6 +198,7 @@ def validate(proposal,index,intent,allowed):
             combined=' '.join(p.text for p in passages)
             titles=' '.join(index.sources[p.source_id].title for p in passages)
             if cat=='candidate':
+                if key(label) not in key(statement): reject('claim_subject_missing'); continue
                 if key(label) not in key(combined): reject('entity_not_in_evidence'); continue
                 # Every passage for a candidate-specific claim must identify that
                 # candidate itself (or do so in its source title). A neighboring
@@ -203,6 +206,26 @@ def validate(proposal,index,intent,allowed):
                 # misattributed to the preceding table row or section heading.
                 if any(key(label) not in key(p.text+' '+index.sources[p.source_id].title) for p in passages):
                     reject('passage_entity_mismatch'); continue
+                # A passage can name several products while assigning a caveat
+                # to just one of them (for example, "A, B, and C replicate ...;
+                # B's high availability requires distributed mode"). Do not let
+                # the shared sentence make B's feature appear to belong to A/C.
+                foreign_owner=False
+                statement_terms=tokens(statement)
+                for other in candidate_names:
+                    if key(other)==key(label): continue
+                    escaped=re.escape(other)
+                    patterns=(rf"\b{escaped}(?:['’]s)\s+([^.;!?]+)",
+                              rf"\b{escaped}\s+(?:supports?|ships?|offers?|uses?|has|includes?|requires?|provides?)\s+([^.;!?]+)")
+                    for passage in passages:
+                        for pattern in patterns:
+                            for match in re.finditer(pattern,passage.text,re.I):
+                                if len(statement_terms & tokens(match.group(1)))>=2:
+                                    foreign_owner=True; break
+                            if foreign_owner: break
+                        if foreign_owner: break
+                    if foreign_owner: break
+                if foreign_owner: reject('feature_owned_by_other_entity'); continue
             # Guard common relationship overstatements before semantic review.
             # This is a conservative lexical check, not a general entailment test.
             qualifiers=((r'\bheadquarter\w*\b',r'\bheadquarter\w*\b'),
