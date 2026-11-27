@@ -63,8 +63,13 @@ def intent_from(question,proposal):
         good=[q.strip()[:400] for q in queries[:4] if isinstance(q,str) and 5<=len(q.strip())<=400 and not BAD.search(q) and not re.search(r'https?://',q) and qt & tokens(q)]
         intent['queries']=list(dict.fromkeys([question[:400]]+good))[:3]
     names=proposal.get('named')
-    if isinstance(names,list):
-        intent['named']=list(dict.fromkeys(n.strip() for n in names[:8] if isinstance(n,str) and 2<=len(n.strip())<=80 and key(n) and key(n) in key(question) and not BAD.search(n)))
+    # Discovery lists never have a mandatory named-candidate set. Only an explicit
+    # comparison of named alternatives can restrict the candidate universe.
+    if intent['shape']=='compare' and isinstance(names,list) and re.search(r'\b(?:vs\.?|versus|and)\b',question,re.I):
+        possible=list(dict.fromkeys(n.strip() for n in names[:8] if isinstance(n,str) and 2<=len(n.strip())<=80 and key(n) and key(n) in key(question) and not BAD.search(n)))
+        generic=re.compile(r'\b(?:companies|startups|tools|alternatives|solutions|platforms|products|options|providers|databases|frameworks)\b',re.I)
+        possible=[n for n in possible if not generic.search(n)]
+        if len(possible)>=2: intent['named']=possible
     return intent
 
 @dataclass(frozen=True)
@@ -188,7 +193,14 @@ def validate(proposal,index,intent,allowed):
             pids=list(dict.fromkeys(pids)); passages=[index.passages[p] for p in pids]
             combined=' '.join(p.text for p in passages)
             titles=' '.join(index.sources[p.source_id].title for p in passages)
-            if cat=='candidate' and key(label) not in key(combined+' '+titles): reject('entity_not_in_evidence'); continue
+            if cat=='candidate' and key(label) not in key(combined): reject('entity_not_in_evidence'); continue
+            # Guard common relationship overstatements before semantic review.
+            # This is a conservative lexical check, not a general entailment test.
+            qualifiers=((r'\bheadquarter\w*\b',r'\bheadquarter\w*\b'),
+                        (r'\bbased in\b',r'\b(?:based in|[- ]based|headquarter\w*|located in)\b'),
+                        (r'\bsubscription(?: model| pricing)?\b',r'\b(?:subscription\w*|recurring pricing|monthly plan|annual plan)\b'))
+            if any(re.search(a,statement,re.I) and not re.search(b,combined,re.I) for a,b in qualifiers):
+                reject('unsupported_qualification'); continue
             if intent['shape']=='tradeoffs' and ((cat=='benefit' and rid!='R1') or (cat=='risk' and rid!='R2')): reject('wrong_tradeoff_requirement'); continue
             # A numeric claim must use numbers present in evidence, even before semantic review.
             if not set(NUMBER.findall(statement))<=set(NUMBER.findall(combined)): reject('unsupported_number'); continue
@@ -227,7 +239,7 @@ def coverage(intent,claims,discovered):
         entry['covered'].add(c['requirement_id'])
     if shape in ('list','compare'):
         # Named alternatives are required, not interchangeable with other labels.
-        wanted=intent.get('named') or []
+        wanted=(intent.get('named') or []) if shape=='compare' else []
         if wanted: target=max(target,len(wanted))
         for name in list(wanted)+list(discovered):
             if key(name): grouped.setdefault(key(name),{'label':name,'category':'candidate','covered':set()})
@@ -235,7 +247,7 @@ def coverage(intent,claims,discovered):
         qualified=[r for r in rows if not r['missing'] and (not wanted or key(r['label']) in {key(n) for n in wanted})]
         covered=len(qualified)
         return {'target':target,'covered':covered,'rows':rows,'missing':[{'label':r['label'],'requirements':r['missing']} for r in rows if r['missing']][:6],
-                'need_more_candidates':max(0,target-len(rows)),'complete':covered>=target}
+                'need_more_candidates':max(0,target-len([r for r in rows if r['covered']])),'complete':covered>=target}
     # For conceptual research and tradeoffs, check each requirement explicitly.
     covered_ids={c['requirement_id'] for c in claims if shape!='tradeoffs' or (c['requirement_id']=='R1' and c['category']=='benefit') or (c['requirement_id']=='R2' and c['category']=='risk')}
     missing=[r for r in ids if r not in covered_ids]

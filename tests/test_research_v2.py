@@ -135,3 +135,22 @@ class V2Tests(unittest.TestCase):
         from veritas.tools import rate_headers
         headers={'retry-after':'17','x-ratelimit-remaining-tokens':'123','x-ratelimit-reset-tokens':'12.3s','Authorization':'secret','x-ratelimit-limit-tokens':'invalid'}
         self.assertEqual(rate_headers(headers),{'retry-after':17,'x-ratelimit-remaining-tokens':123,'x-ratelimit-reset-tokens':'12.3s'})
+
+    def test_open_list_ignores_category_names(self):
+        q='Find 5 Indian B2B SaaS startups in HR tech and summarize their positioning.'
+        intent=intent_from(q,{'named':['Indian B2B SaaS startups in HR tech','B2B SaaS startups']})
+        self.assertEqual(intent['named'],[])
+        claims=[{'label':'Alpha','category':'candidate','requirement_id':x['id']} for x in intent['facets']]
+        self.assertEqual(coverage(intent,claims,['Alpha'])['covered'],1)
+
+    def test_named_comparison_stays_named(self):
+        intent=intent_from('Compare PostgreSQL versus MySQL',{'named':['PostgreSQL','MySQL']})
+        self.assertEqual(intent['named'],['PostgreSQL','MySQL'])
+
+    def test_qualification_cannot_be_inferred_from_title(self):
+        idx=Index(Q); idx.add(ROWS,'web',Q)
+        p=next(p for p in idx.passages.values() if 'Alpha offers' in p.text)
+        proposal={'sections':[{'label':'Alpha','category':'candidate','claims':[{'statement':'Alpha is headquartered in India.','requirement_id':'R1','passage_ids':[p.id]}]}]}
+        claims,_,audit=validate(proposal,idx,intent_from(Q,None),list(idx.passages))
+        self.assertFalse(claims)
+        self.assertEqual(audit['rejections'],{'unsupported_qualification':1})
