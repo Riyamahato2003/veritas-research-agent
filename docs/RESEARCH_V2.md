@@ -34,3 +34,6 @@ Separate evidence linkage/review from completeness and provider health. Count pa
 
 ## CP31 — live attribution and confidence correction
 Live inspection first found a Qdrant claim citing a contextless “It indexes…” passage from a page section about LanceDB. Candidate claims now repeat their candidate name, and structural validation requires every cited passage or its title to name that candidate. A subsequent live run exposed a subtler case: a passage named Qdrant, Milvus and Weaviate together, then assigned a high-availability caveat specifically to Milvus; the model placed that caveat under Qdrant. Validation now rejects feature text that overlaps with another named candidate's possessive/verb-owned clause. This rule catches the observed structure but is heuristic, may reject valid comparative evidence, and is not general entailment. Confidence is now `medium` only when reviewed coverage is complete, provider health is good, and at least two sources are cited; otherwise it is `low`. The UI displays confidence alongside evidence and coverage indicators.
+
+
+Final CP31 production check: the vector run rejected one feature-owner mismatch and kept confidence low with 6/9 facets; the HR run found five candidates but had no eligibility coverage (5/10 facets). Neither query met its requested coverage. Raw reports and details are in `docs/EVALUATION.md`.
