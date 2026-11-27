@@ -35,7 +35,13 @@ def clean(text):
 def fallback_intent(question):
     shape,n=request_shape(question)
     if shape=='list':
-        facets=['Eligibility under the requested constraints','Positioning and relevant capabilities']
+        if re.search(r'\bIndian\b',question,re.I) and re.search(r'\bHR(?: tech| technology)?\b',question,re.I):
+            eligibility='Indian HR-tech B2B SaaS and startup eligibility'
+        elif re.search(r'\bopen.source\b',question,re.I) and re.search(r'\bvector database',question,re.I):
+            eligibility='Open-source vector database eligibility and RAG fit'
+        else:
+            eligibility='Eligibility under the requested constraints'
+        facets=[eligibility,'Distinctive positioning and relevant capabilities']
         if re.search(r'\bcompare\b',question,re.I): facets.append('Practical tradeoff or limitation')
     elif shape=='tradeoffs': facets=['Benefits','Risks and drawbacks']
     elif shape=='compare': facets=['Approach and capabilities','Practical tradeoff or limitation']

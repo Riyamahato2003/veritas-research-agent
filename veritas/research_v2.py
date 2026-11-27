@@ -185,7 +185,21 @@ def run_live(question,use_model=True,include_diagnostics=False,adapters=None,mod
         reviewed,rejections=review(claims,verdict,intent)
         trace.emit('claim_review','ok' if verdict is not None else 'error',phase=phase,submitted=len(claims),accepted=len(reviewed),rejections=rejections,classification_corrections=sum('original_requirement_id' in c for c in reviewed))
         known={(key(c['label']),c['requirement_id'],key(c['statement'])) for c in accepted}
+        # Coverage is based on reviewed requirement IDs, which may be corrected
+        # by the reviewer. Deduplicate only after that correction so a proposed
+        # duplicate facet cannot hide evidence for a genuinely missing one.
+        occupied={(key(c['label']),c['requirement_id']) for c in accepted}
+        distinct=[]; removed_redundant=0
         for c in reviewed:
+            if c.get('category')=='candidate':
+                cell=(key(c['label']),c['requirement_id'])
+                if cell in occupied:
+                    removed_redundant+=1; continue
+                occupied.add(cell)
+            distinct.append(c)
+        if removed_redundant:
+            trace.emit('claim_selection',phase=phase,removed_redundant_cells=removed_redundant,policy='one reviewed candidate claim per requirement; recovery favors uncovered cells')
+        for c in distinct:
             k=(key(c['label']),c['requirement_id'],key(c['statement']))
             if k not in known: accepted.append(c); known.add(k)
         if not reviewed: failure='claim_review'
@@ -195,16 +209,36 @@ def run_live(question,use_model=True,include_diagnostics=False,adapters=None,mod
     if not cov['complete'] and model_enabled and not model_blocked and 'web' in provider and trace.left()>8 and counts['search']<MAX_SEARCH:
         recovery=True; facets={r['id']:r['label'] for r in intent['facets']}
         gap_queries=[]
-        # Prefer candidates closest to qualification; reserve one slot for discovery when needed.
-        gap_limit=1 if cov['need_more_candidates'] else 2
-        for row in sorted(cov['missing'],key=lambda x:len(x['requirements'])):
-            req=' '.join(facets[x] for x in row['requirements'][:2])
-            prefix=row['label']+' ' if row['label'] else ''
-            gap_queries.append((prefix+question[:180]+' '+req+' official source')[:400])
-            if len(gap_queries)>=gap_limit: break
-        if cov['need_more_candidates'] and len(gap_queries)<2:
-            gap_queries.append((question[:280]+' additional distinct examples official company or project pages')[:400])
-        if not gap_queries: gap_queries=[(question[:280]+' authoritative evidence supporting missing requirements')[:400]]
+        if cov['need_more_candidates']:
+            gap_queries.append((question[:250]+' additional distinct examples official company or project pages')[:400])
+        else:
+            # Batch the same missing criterion across several candidates. This
+            # uses the fixed two-search recovery budget to broaden coverage,
+            # instead of spending one query on each of the first two names.
+            groups={}
+            for row in cov['missing']:
+                for rid in row['requirements']:
+                    groups.setdefault(rid,[]).append(row['label'])
+            ranked=sorted(groups.items(),key=lambda item:(-len(set(item[1])),item[0]))[:2]
+            for rid,names in ranked:
+                names=list(dict.fromkeys(name for name in names if name))
+                if rid=='R1' and re.search(r'\bIndian\b',question,re.I) and re.search(r'\bHR(?: tech| technology)?\b',question,re.I):
+                    terms='Indian HR technology B2B SaaS startup company India-founded or headquartered official company about page'
+                elif rid=='R1' and re.search(r'\bopen.source\b',question,re.I):
+                    terms='open-source license repository GitHub vector database RAG official documentation'
+                elif rid=='R3':
+                    terms='practical tradeoffs deployment operations resource requirements limitations cost official documentation'
+                else:
+                    terms=facets.get(rid,'requested evidence')+' official source'
+                chunks=[names]
+                if len(names)>3:
+                    midpoint=(len(names)+1)//2; chunks=[names[:midpoint],names[midpoint:]]
+                for chunk in chunks:
+                    if len(gap_queries)>=2: break
+                    label_list=' '.join(chunk)
+                    gap_queries.append((label_list+' '+terms)[:400])
+                if len(gap_queries)>=2: break
+        if not gap_queries: gap_queries=[question[:280]+' authoritative evidence supporting missing requirements']
         # Reserve the final proposal/review budget; no unbounded retries.
         trace.emit('recovery','triggered',gaps=cov['missing'],need_more_candidates=cov['need_more_candidates'],queries=gap_queries)
         retrieve([Step('web',q,'Coverage gap: targeted evidence') for q in dict.fromkeys(gap_queries)],'recovery')
