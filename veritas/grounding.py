@@ -50,8 +50,10 @@ def intent_from(question,proposal):
         labels=[x.strip() for x in raw[:4] if isinstance(x,str) and 4<=len(x.strip())<=100 and not BAD.search(x) and 'http' not in x.lower()]
         # Keep fixed minimum criteria for explicit lists and both sides of tradeoffs.
         if intent['shape']=='list':
-            extra=labels[:2]
-            labels=[x['label'] for x in intent['facets']]+extra
+            # Prototype scope: do not add overlapping model-generated mandatory
+            # facets to numbered discovery tasks. R1 covers the explicit eligibility
+            # constraints together; R2 covers positioning; comparison adds R3.
+            labels=[x['label'] for x in intent['facets']]
         elif intent['shape']=='tradeoffs': labels=[x['label'] for x in intent['facets']]
         elif intent['shape']=='compare': labels=labels if len(labels)>=2 else [x['label'] for x in intent['facets']]
         else: labels=labels or [x['label'] for x in intent['facets']]
@@ -215,17 +217,25 @@ def reviewer_payload(claims,index):
     return [{**c,'evidence':[{'id':pid,'text':index.passages[pid].text,'source_title':index.sources[index.passages[pid].source_id].title,'host':urlsplit(index.sources[index.passages[pid].source_id].url).hostname} for pid in c['passage_ids']]} for c in claims]
 
 REVIEW_REASONS={'supported','irrelevant','wrong_entity','not_entailed','missing_qualification','unverified_eligibility','unsupported_number','wrong_requirement','uncertain','malformed'}
-def review(claims,verdict):
+def review(claims,verdict,intent=None):
     votes={}; counts={}; accepted=[]
+    valid_facets={x['id'] for x in intent['facets']} if intent else set()
     raw=verdict.get('verdicts') if isinstance(verdict,dict) else None
     if isinstance(raw,list):
         for v in raw[:48]:
             if not isinstance(v,dict) or not isinstance(v.get('id'),str): continue
             cid=v['id']; reason=v.get('reason')
             reason=reason if isinstance(reason,str) and reason in REVIEW_REASONS else 'uncertain'
-            votes[cid]=(False,'duplicate_verdict') if cid in votes else (v.get('supported') is True and reason=='supported',reason)
+            votes[cid]=(False,'duplicate_verdict',None) if cid in votes else (v.get('supported') is True and reason=='supported',reason,v.get('requirement_id'))
     for c in claims:
-        ok,reason=votes.get(c['id'],(False,'missing_verdict'))
+        ok,reason,rid=votes.get(c['id'],(False,'missing_verdict',None))
+        if ok and intent is not None and rid is not None:
+            # A reviewer may correct a facet without rewriting the claim or its
+            # evidence. Invalid or incompatible reassignment is fail-closed.
+            if not isinstance(rid,str) or rid not in valid_facets or (intent['shape']=='tradeoffs' and rid!=('R1' if c['category']=='benefit' else 'R2')):
+                ok=False; reason='wrong_requirement'
+            elif rid!=c['requirement_id']:
+                c={**c,'original_requirement_id':c['requirement_id'],'requirement_id':rid}
         if ok: accepted.append(c)
         else: counts[reason]=counts.get(reason,0)+1
     return accepted,counts
@@ -246,13 +256,21 @@ def coverage(intent,claims,discovered):
         rows=[{'label':x['label'],'covered':sorted(x['covered']),'missing':[r for r in ids if r not in x['covered']]} for x in grouped.values()]
         qualified=[r for r in rows if not r['missing'] and (not wanted or key(r['label']) in {key(n) for n in wanted})]
         covered=len(qualified)
-        return {'target':target,'covered':covered,'rows':rows,'missing':[{'label':r['label'],'requirements':r['missing']} for r in rows if r['missing']][:6],
-                'need_more_candidates':max(0,target-len([r for r in rows if r['covered']])),'complete':covered>=target}
+        eligible_rows=[r for r in rows if not wanted or key(r['label']) in {key(n) for n in wanted}]
+        ranked=sorted(eligible_rows,key=lambda r:(-len(r['covered']),key(r['label'])))[:target]
+        # Count only reviewed candidates, and cap the cell denominator to the
+        # requested target. Missing candidate slots count as uncovered cells.
+        reviewed=sum(bool(r['covered']) for r in eligible_rows)
+        discovered_count=len(eligible_rows)
+        return {'target':target,'covered':covered,'rows':rows,'missing':[{'label':r['label'],'requirements':r['missing']} for r in eligible_rows if r['missing']][:6],
+                'need_more_candidates':max(0,target-reviewed),'complete':covered>=target,
+                'candidate_discovery':min(target,discovered_count),'candidates_reviewed':min(target,reviewed),
+                'facets_covered':sum(len(r['covered']) for r in ranked),'facets_target':target*len(ids)}
     # For conceptual research and tradeoffs, check each requirement explicitly.
     covered_ids={c['requirement_id'] for c in claims if shape!='tradeoffs' or (c['requirement_id']=='R1' and c['category']=='benefit') or (c['requirement_id']=='R2' and c['category']=='risk')}
     missing=[r for r in ids if r not in covered_ids]
     return {'target':len(ids),'covered':len(covered_ids),'rows':[{'label':x['label'],'covered':[x['id']] if x['id'] in covered_ids else [],'missing':[x['id']] if x['id'] in missing else []} for x in intent['facets']],
-            'missing':[{'label':'','requirements':missing}] if missing else [],'need_more_candidates':0,'complete':not missing}
+            'missing':[{'label':'','requirements':missing}] if missing else [],'need_more_candidates':0,'complete':not missing,'facets_covered':len(covered_ids),'facets_target':len(ids)}
 
 def sections_from(claims,index,intent):
     groups={}; labels={x['id']:x['label'] for x in intent['facets']}

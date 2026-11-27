@@ -43,3 +43,6 @@ An isolated public-endpoint audit reproduced 2/5 HR-tech coverage (15 accepted w
 ## CP17–23 — Passage-indexed, coverage-driven live engine
 
 New live pipeline with intent decomposition, provider-score ranking, bounded Tavily extraction, immutable passage IDs, explicit per-candidate requirements, missing-coverage recovery, fail-closed claim review, and privacy-minimized correlated run telemetry. The original demo remains unchanged. See `docs/RESEARCH_V2.md`; provider credentials and live acceptance are separate from CI.
+
+## CP26–30 — prototype reporting and quality polish
+Separate citation linkage, evidence review status, candidate discovery/review, facet coverage and provider health. Correct requirement assignment in the existing review pass, simplify numbered-list rubric, prefer atomic claims, and explain partial answers directly in the UI. Preserve the original demo and provider budgets. No production infrastructure expansion.

@@ -2,7 +2,7 @@
 import json, time, uuid
 from collections import Counter
 from .tools import ToolError
-ENGINE='cp17-23-v2'
+ENGINE='cp30-prototype'
 def error_code(exc):
     return exc.kind if isinstance(exc,ToolError) else 'internal_'+type(exc).__name__
 class Trace:
@@ -29,5 +29,5 @@ def log_report(report):
     """No question, query, evidence text, URLs, model prompts, or provider response bodies."""
     m=report.metrics
     if m.get('engine_version')!=ENGINE: return
-    fields=('engine_version','run_id','elapsed_ms','provider_attempts','error_counts','stage_ms','token_usage','model_usage','rate_limits','coverage','coverage_target','claims_proposed','claims_accepted','claims_rejected','search_credits_upper_estimate','passages_indexed','recovery_triggered','failure_stage')
+    fields=('engine_version','run_id','elapsed_ms','provider_attempts','error_counts','stage_ms','token_usage','model_usage','rate_limits','coverage','coverage_target','claims_proposed','claims_accepted','claims_rejected','search_credits_upper_estimate','passages_indexed','recovery_triggered','failure_stage','quality')
     print('VERITAS_RUN '+json.dumps({'status':report.status,'confidence':report.confidence,**{k:m.get(k) for k in fields}},separators=(',',':')),flush=True)
