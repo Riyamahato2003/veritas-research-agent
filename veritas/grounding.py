@@ -312,8 +312,11 @@ def coverage(intent,claims,discovered):
         # requested target. Missing candidate slots count as uncovered cells.
         reviewed=sum(bool(r['covered']) for r in eligible_rows)
         discovered_count=len(eligible_rows)
+        # Explicit alternatives are already known. An unreviewed named option
+        # is a coverage gap, not a request to discover a substitute candidate.
+        need_more=0 if wanted else max(0,target-reviewed)
         return {'target':target,'covered':covered,'rows':rows,'missing':[{'label':r['label'],'requirements':r['missing']} for r in eligible_rows if r['missing']][:6],
-                'need_more_candidates':max(0,target-reviewed),'complete':covered>=target,
+                'need_more_candidates':need_more,'complete':covered>=target,
                 'candidate_discovery':min(target,discovered_count),'candidates_reviewed':min(target,reviewed),
                 'facets_covered':sum(len(r['covered']) for r in ranked),'facets_target':target*len(ids)}
     # For conceptual research and tradeoffs, check each requirement explicitly.

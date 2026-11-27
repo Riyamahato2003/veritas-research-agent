@@ -13,6 +13,15 @@ class PrototypeReportingTests(unittest.TestCase):
         i=intent_from(Q,{'facets':['open source license','scalability','startup usability']})
         self.assertEqual(len(i['facets']),3)
         self.assertEqual(i['target'],3)
+    def test_named_unreviewed_candidate_is_coverage_gap_not_discovery_gap(self):
+        q='Compare REST APIs, GraphQL and gRPC for microservices.'
+        intent=intent_from(q,{'named':[],'facets':['performance','tooling']})
+        claims=[{'label':'GraphQL','category':'candidate','requirement_id':'R1'},
+                {'label':'gRPC','category':'candidate','requirement_id':'R1'}]
+        result=coverage(intent,claims,['GraphQL','gRPC'])
+        self.assertEqual(result['target'],3)
+        self.assertEqual(result['need_more_candidates'],0)
+        self.assertIn({'label':'REST APIs','requirements':['R1','R2']},result['missing'])
     def test_granular_not_all_or_nothing(self):
         i=intent_from(Q,None)
         claims=[{'label':n,'category':'candidate','requirement_id':rid} for n in ('Alpha','Beta','Gamma') for rid in ('R1','R2')]
