@@ -64,6 +64,9 @@ class V2Tests(unittest.TestCase):
         r=run_live(Q,adapters={'web':lambda q,t:ROWS},model=bad)
         self.assertFalse(r.sections); self.assertIn('http_429:rate_limit_exceeded',r.metrics['error_counts'])
         self.assertEqual(r.status,'partial')
+        self.assertEqual(r.metrics['model_calls'],1)
+        self.assertEqual(r.metrics['provider_attempts']['groq'],1)
+        self.assertFalse(r.metrics['recovery_triggered'])
         self.assertFalse(any(e['stage']=='evidence_snapshot' for e in r.trace))
     def test_total_outage(self):
         def down(*a): raise ToolError('network_error',True)
@@ -76,3 +79,36 @@ class V2Tests(unittest.TestCase):
               {'title':'Alpha HR SaaS','url':'https://127.0.0.1/private','text':'Alpha is an Indian HR SaaS company.'}]
         a,r=idx.add(rows,'web',Q)
         self.assertFalse(a); self.assertEqual(r,{'off_intent_title':1,'invalid_url':1})
+
+    def test_multi_source_claim_and_review(self):
+        idx=Index(Q)
+        idx.add(ROWS,'web',Q)
+        ps=[p for p in idx.passages.values() if p.text.startswith('Alpha')]
+        intent=intent_from(Q,None)
+        proposal={'sections':[{'label':'Alpha','category':'candidate','claims':[{'statement':'Alpha is an Indian HR SaaS company offering payroll automation.','requirement_id':'R1','passage_ids':[p.id for p in ps]}]}]}
+        claims,_,audit=validate(proposal,idx,intent,list(idx.passages))
+        self.assertEqual(len(claims),1)
+        self.assertEqual(len(claims[0]['passage_ids']),2)
+        self.assertFalse(review(claims,{'verdicts':[{'id':claims[0]['id'],'supported':True,'reason':'not_entailed'}]})[0])
+
+    def test_frozen_copy_mismatch_vs_passage_id(self):
+        from veritas.synthesis import candidates
+        idx=Index(Q); idx.add(ROWS,'web',Q)
+        p=next(p for p in idx.passages.values() if 'Alpha offers' in p.text)
+        evidence=list(idx.sources.values())
+        old={'sections':[{'label':'Alpha','category':'candidate','claims':[{'statement':'Alpha offers payroll automation.','source_id':p.source_id,'quote':p.text.replace('automation','automation,')}]}]}
+        new={'sections':[{'label':'Alpha','category':'candidate','claims':[{'statement':'Alpha offers payroll automation.','requirement_id':'R2','passage_ids':[p.id]}]}]}
+        self.assertEqual(candidates(old,evidence,'list'),[])
+        self.assertEqual(len(validate(new,idx,intent_from(Q,None),list(idx.passages))[0]),1)
+
+    def test_log_redaction(self):
+        import io, contextlib
+        from veritas.telemetry import log_report
+        r=run_live(Q,False,adapters={'web':lambda q,t:ROWS},include_diagnostics=True)
+        buf=io.StringIO()
+        with contextlib.redirect_stdout(buf): log_report(r)
+        line=buf.getvalue()
+        self.assertIn(r.metrics['run_id'],line)
+        self.assertNotIn(Q,line)
+        self.assertNotIn('https://',line)
+        self.assertNotIn('Alpha offers',line)

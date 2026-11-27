@@ -55,10 +55,10 @@ def run_live(question,use_model=True,include_diagnostics=False,adapters=None,mod
     model=model or default_model
     extractor=extractor if extractor is not None else (extract_web if adapters is None and 'web' in provider else None)
     plan=[]; limits=[]; accepted=[]; discovered=[]; counts={'search':0,'extract':0,'model':0,'proposed':0,'accepted':0,'rejected':0}; recovery=False
-    failure='none'
+    failure='none'; model_blocked=False
     def call(stage,data,max_timeout=8):
-        nonlocal failure
-        if not model_enabled or counts['model']>=MAX_MODEL or trace.left()<3:
+        nonlocal failure,model_blocked
+        if not model_enabled or model_blocked or counts['model']>=MAX_MODEL or trace.left()<3:
             trace.emit('model','skipped',provider='groq',phase=stage,reason='disabled_or_budget'); return None
         counts['model']+=1; start=time.monotonic()
         try:
@@ -70,7 +70,9 @@ def run_live(question,use_model=True,include_diagnostics=False,adapters=None,mod
             return out
         except Exception as exc:
             failure='model_'+stage
-            trace.emit('model','error',provider='groq',phase=stage,ms=round((time.monotonic()-start)*1000),error=error_code(exc))
+            code=error_code(exc)
+            if code.startswith(('http_401','http_403','http_429')): model_blocked=True
+            trace.emit('model','error',provider='groq',phase=stage,ms=round((time.monotonic()-start)*1000),error=code)
             return None
     proposal=call('intent',{'question':question},6) if model_enabled else None
     intent=intent_from(question,proposal)
@@ -159,7 +161,7 @@ def run_live(question,use_model=True,include_diagnostics=False,adapters=None,mod
         trace.emit('coverage',phase=phase,**coverage(intent,accepted,discovered))
     synthesize('initial')
     cov=coverage(intent,accepted,discovered)
-    if not cov['complete'] and 'web' in provider and trace.left()>8 and counts['search']<MAX_SEARCH:
+    if not cov['complete'] and model_enabled and not model_blocked and 'web' in provider and trace.left()>8 and counts['search']<MAX_SEARCH:
         recovery=True; facets={r['id']:r['label'] for r in intent['facets']}
         gap_queries=[]
         for row in cov['missing']:
@@ -200,6 +202,7 @@ def run_live(question,use_model=True,include_diagnostics=False,adapters=None,mod
     if status=='complete': confidence='medium' if len(sources)>=2 and not trace.errors else 'low'
     else: confidence='low'
     if not cov['complete'] and failure=='none': failure='coverage'
+    if not idx.passages: failure='retrieval_no_evidence'
     if cov['complete'] and accepted: failure='none' if not trace.errors else 'degraded'
     if include_diagnostics:
         trace.emit('evidence_snapshot',records=[{**p.to_dict(),'url':idx.sources[p.source_id].url,'title':idx.sources[p.source_id].title} for p in idx.shortlist(100,preferred=[pid for c in accepted for pid in c['passage_ids']])])

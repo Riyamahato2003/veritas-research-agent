@@ -184,6 +184,7 @@ def validate(proposal,index,intent,allowed):
             combined=' '.join(p.text for p in passages)
             titles=' '.join(index.sources[p.source_id].title for p in passages)
             if cat=='candidate' and key(label) not in key(combined+' '+titles): reject('entity_not_in_evidence'); continue
+            if intent['shape']=='tradeoffs' and ((cat=='benefit' and rid!='R1') or (cat=='risk' and rid!='R2')): reject('wrong_tradeoff_requirement'); continue
             # A numeric claim must use numbers present in evidence, even before semantic review.
             if not set(NUMBER.findall(statement))<=set(NUMBER.findall(combined)): reject('unsupported_number'); continue
             ident=(key(label),rid,key(statement))
@@ -205,7 +206,7 @@ def review(claims,verdict):
             if not isinstance(v,dict) or not isinstance(v.get('id'),str): continue
             cid=v['id']; reason=v.get('reason')
             reason=reason if isinstance(reason,str) and reason in REVIEW_REASONS else 'uncertain'
-            votes[cid]=(False,'duplicate_verdict') if cid in votes else (v.get('supported') is True,reason)
+            votes[cid]=(False,'duplicate_verdict') if cid in votes else (v.get('supported') is True and reason=='supported',reason)
     for c in claims:
         ok,reason=votes.get(c['id'],(False,'missing_verdict'))
         if ok: accepted.append(c)

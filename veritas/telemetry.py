@@ -16,7 +16,7 @@ class Trace:
         self.events.append(e)
         if 'error' in data: self.errors[str(data['error'])]+=1
         if isinstance(data.get('ms'),int): self.stage_ms[stage]+=data['ms']
-        if stage in ('retrieve','extract','model'): self.attempts[data.get('provider',stage)]+=1
+        if stage in ('retrieve','extract','model') and status!='skipped': self.attempts[data.get('provider',stage)]+=1
         for k,v in data.get('usage',{}).items():
             if k in ('prompt_tokens','completion_tokens','total_tokens') and isinstance(v,int) and v>=0: self.usage[k]+=v
     def summary(self):

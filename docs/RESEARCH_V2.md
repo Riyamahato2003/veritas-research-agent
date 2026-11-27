@@ -20,3 +20,5 @@ Every live report has engine version, run ID, chronological offsets, stage times
 
 ## Real-world acceptance
 Check five assignment/unseen questions; inspect citations and eligibility for each candidate. Do not interpret complete as proof of truth. Compare CP16's quote-copy rejections to V2 ID failures; evaluate useful entity coverage, claims accepted/rejected, p50/p95 latency, token and search usage, and fallback behavior across repeated runs. A handful of live smoke tests are not statistical accuracy evidence.
+
+A frozen artificial evidence replay asserts that a punctuation-altered legacy quote fails while the same supported claim with a stable passage ID passes structural validation. This isolates quote-copy failure without claiming semantic accuracy. Authentication/rate-limit model errors suppress subsequent Groq calls in the same run; skip events are not counted as attempts.
