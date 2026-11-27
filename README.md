@@ -1,6 +1,6 @@
 # Veritas — evidence-first research agent
 
-A focused Platform Engineer take-home submission for Predixion AI. Veritas is a bounded, read-only planner–executor that retrieves evidence, filters noise, verifies cited spans, and returns a structured answer or an explicit abstention. The terminal interface is intentionally simple.
+A focused Platform Engineer take-home submission for Predixion AI. Veritas is a bounded, read-only planner–executor that retrieves evidence, filters noise, verifies cited spans, and returns a structured answer or an explicit abstention. The agent runs through both a CLI and a responsive web workspace.
 
 ## Quick start
 
@@ -80,13 +80,32 @@ evaluate.py  11 scenario checks; writes samples and evaluation results
 baseline.py single-tool comparison on the same fixture inputs
 samples/    3 generated JSON reports: HR, vector search, total outage
 docs/       evaluation, checkpoints, logs, walkthrough script
-.github/    CI workflow (configured, not yet run on GitHub)
+.github/    CI workflow
 ```
 
 ## Evaluation and production roadmap
 
-See [evaluation notes](docs/EVALUATION.md), [machine-readable results](docs/evaluation-results.json), [baseline results](docs/baseline-results.json), and [checkpoints](docs/CHECKPOINTS.md). The included checks measure behavior and contract integrity; they are not a statistical factual-accuracy benchmark. Next: live provider smoke tests; human-labeled diverse questions and adversarial sources; claim-level entailment and primary-source verification; query budgeting and rate limiting; calibrated confidence, tenant isolation, and observability. Monitor latency by provider, failure/retry rate, zero-result rate, source diversity, citation rejection, abstention rate, token/cost per run, and human-scored answer quality. No public deployment is necessary for the assignment; run the CLI locally.
+See [evaluation notes](docs/EVALUATION.md), [machine-readable results](docs/evaluation-results.json), [baseline results](docs/baseline-results.json), and [checkpoints](docs/CHECKPOINTS.md). The included checks measure behavior and contract integrity; they are not a statistical factual-accuracy benchmark. Next: live provider smoke tests; human-labeled diverse questions and adversarial sources; claim-level entailment and primary-source verification; query budgeting and rate limiting; calibrated confidence, tenant isolation, and observability. Monitor latency by provider, failure/retry rate, zero-result rate, source diversity, citation rejection, abstention rate, token/cost per run, and human-scored answer quality. The CLI remains fully usable without a deployment. The web workspace runs the same engine via a bounded Python HTTP endpoint.
 
 ## Demo and submission
 
-The separate MP4 is a narrated walkthrough of actual offline CLI/evaluation runs, with simulated faults labeled. A human-presented recording can be made using [the demo script](docs/DEMO.md). Publish this source repository and share the demo via a viewable link; neither external publication nor a successful live API smoke test is claimed here.
+The separate MP4 is a narrated walkthrough of actual offline CLI/evaluation runs, with simulated faults labeled. A human-presented recording can be made using [the demo script](docs/DEMO.md). Share the separate demo via a viewable link. A successful live provider smoke test is not yet claimed.
+
+
+## Web workspace / Vercel
+
+Run `python web_server.py` and open `http://localhost:8000`. The static responsive frontend calls `/api/research`, which directly invokes the original Python agent, not a mock UI or a rewritten engine. The research workspace includes clickable evidence IDs, plan and trace views, JSON export, a failure lab, recorded evaluation results with rerun controls, and architecture notes. Trace events are returned after the request finishes (not streamed).
+
+Deployment: import this repository into Vercel; the root `vercel.json` configures the static `public/` output and a Python function. Public demo mode requires no API keys. To enable live mode, add these variables to the project's **Production** environment and redeploy:
+
+| Variable | Purpose |
+|---|---|
+| `OPENAI_API_KEY` | Optional model-based evidence span selection |
+| `BRAVE_API_KEY` | Broad live web search; recommended |
+| `OPENAI_MODEL` | Optional, defaults to `gpt-4o-mini` |
+| `VERITAS_LIVE_ACCESS_CODE` | Set a strong random access code and share only with trusted reviewers |
+| `VERITAS_ALLOW_PUBLIC_LIVE` | Optional explicit opt-in (`true`) to ungated live requests; **not recommended** without quota/rate controls |
+
+At least one paid-provider key and either an access code or explicit public-live opt-in are required to enable live mode through the web UI. When a code is configured, it is always required, even if public-live opt-in is set. The browser never receives provider keys. This gate is not a full authentication or distributed rate-limiting system; set provider spend limits and avoid exposing paid access publicly. Demo mode always remains available. No browser persistence of the access code is implemented. The dashboard's historical evaluation metrics are fixture-based, not factual-accuracy claims.
+
+Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs all 29 tests.
