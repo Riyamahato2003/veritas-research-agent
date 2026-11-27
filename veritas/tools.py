@@ -23,7 +23,16 @@ def request_json(url, params=None, headers=None, payload=None, timeout=4):
             if len(raw)>1_000_000: raise ToolError('oversized_response')
             return json.loads(raw)
     except urllib.error.HTTPError as e:
-        raise ToolError(f'http_{e.code}', e.code in (408,429,500,502,503,504)) from None
+        # Capture only allowlisted Groq error codes, never messages or response bodies.
+        suffix=''
+        if urllib.parse.urlsplit(url).hostname=='api.groq.com':
+            try:
+                body=json.loads(e.read(4096))
+                code=body.get('error',{}).get('code')
+                if code in ('json_validate_failed','failed_generation','rate_limit_exceeded','context_length_exceeded','model_not_found','model_decommissioned','invalid_api_key','invalid_request_error','insufficient_quota','tokens_limit_exceeded'):
+                    suffix=':'+code
+            except Exception: pass
+        raise ToolError(f'http_{e.code}'+suffix, e.code in (408,429,500,502,503,504)) from None
     except (TimeoutError, socket.timeout): raise ToolError('timeout',True) from None
     except (urllib.error.URLError,OSError): raise ToolError('network_error',True) from None
     except (ValueError, UnicodeError): raise ToolError('malformed_json') from None

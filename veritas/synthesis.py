@@ -14,27 +14,38 @@ def request_shape(question):
     if re.search(r'\b(?:compare|comparison|versus|tradeoffs?|approaches|alternatives)\b',question,re.I): return 'compare',2
     return 'research',1
 
-def candidates(proposal,evidence,shape):
-    if not isinstance(proposal,dict) or not isinstance(proposal.get('sections'),list): return []
+def candidates(proposal,evidence,shape,diagnostics=None):
+    audit=diagnostics if diagnostics is not None else {}
+    audit.update(raw_sections=0,raw_claims=0,rejections={})
+    def reject(reason):
+        audit['rejections'][reason]=audit['rejections'].get(reason,0)+1
+    if not isinstance(proposal,dict) or not isinstance(proposal.get('sections'),list):
+        reject('invalid_sections_schema'); return []
+    audit['raw_sections']=len(proposal['sections'])
+    audit['raw_claims']=sum(len(s['claims']) for s in proposal['sections'] if isinstance(s,dict) and isinstance(s.get('claims'),list))
     sources={e.id:e for e in evidence}; result=[]; seen=set()
     for section in proposal['sections'][:8]:
-        if not isinstance(section,dict): continue
+        if not isinstance(section,dict): reject('section_not_object'); continue
         label=section.get('label'); category=section.get('category')
-        if not isinstance(label,str) or not 2<=len(label.strip())<=90 or not label_key(label) or BAD.search(label): continue
-        if category not in ('candidate','benefit','risk','topic'): continue
-        if shape=='list' and category!='candidate': continue
-        if shape=='tradeoffs' and category not in ('benefit','risk'): continue
-        if not isinstance(section.get('claims'),list): continue
+        if not isinstance(label,str) or not 2<=len(label.strip())<=90 or not label_key(label) or BAD.search(label): reject('invalid_label'); continue
+        if category not in ('candidate','benefit','risk','topic'): reject('invalid_category'); continue
+        if shape=='list' and category!='candidate': reject('wrong_list_category'); continue
+        if shape=='tradeoffs' and category not in ('benefit','risk'): reject('wrong_tradeoff_category'); continue
+        if not isinstance(section.get('claims'),list): reject('invalid_claims_schema'); continue
         for item in section['claims'][:3]:
-            if len(result)>=16: return result
-            if not isinstance(item,dict): continue
+            if len(result)>=16: reject('claim_budget'); return result
+            if not isinstance(item,dict): reject('claim_not_object'); continue
             sid,quote,statement=item.get('source_id'),item.get('quote'),item.get('statement')
-            if not all(isinstance(x,str) for x in (sid,quote,statement)): continue
-            if sid not in sources or not 25<=len(quote)<=600 or quote not in sources[sid].text: continue
-            if not 15<=len(statement.strip())<=400 or BAD.search(statement) or BAD.search(quote) or NOISE.search(quote): continue
-            if category=='candidate' and label_key(label) not in label_key(quote): continue
+            if not all(isinstance(x,str) for x in (sid,quote,statement)): reject('invalid_claim_fields'); continue
+            if sid not in sources: reject('unknown_source_id'); continue
+            if not 25<=len(quote)<=600: reject('quote_length'); continue
+            if quote not in sources[sid].text: reject('quote_not_exact'); continue
+            if not 15<=len(statement.strip())<=400: reject('statement_length'); continue
+            if BAD.search(statement) or BAD.search(quote): reject('unsafe_text_or_url'); continue
+            if NOISE.search(quote): reject('noisy_quote'); continue
+            if category=='candidate' and label_key(label) not in label_key(quote): reject('entity_not_in_quote'); continue
             key=(label_key(label),statement.strip().lower())
-            if key in seen: continue
+            if key in seen: reject('duplicate_claim'); continue
             seen.add(key)
             result.append({'id':'C'+str(len(result)+1),'label':label.strip(),'category':category,
                            'statement':statement.strip(),'source_id':sid,'quote':quote})

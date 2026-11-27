@@ -37,8 +37,12 @@ def request_report(data):
     use_model = data.get('use_model', True)
     if not isinstance(use_model, bool):
         return 400, {'error': 'use_model must be a boolean.'}
+    include_diagnostics=data.get('include_diagnostics',False)
+    if not isinstance(include_diagnostics,bool):
+        return 400, {'error':'include_diagnostics must be a boolean.'}
     try:
-        return 200, run(q, mode, fault, use_model).to_dict()
+        opts={'include_diagnostics':True} if include_diagnostics else {}
+        return 200, run(q, mode, fault, use_model, **opts).to_dict()
     except ValueError as exc:
         return 400, {'error': str(exc)}
     except Exception:

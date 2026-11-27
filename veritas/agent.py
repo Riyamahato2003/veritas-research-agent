@@ -73,11 +73,13 @@ def linked_analysis(proposal, findings, evidence):
         result.append(Finding(statement.strip(),ids))
     return result
 
-def run(question, mode='demo', fault='none', use_model=True, adapters=None, model_select=select, model_verify=verify):
+def run(question, mode='demo', fault='none', use_model=True, adapters=None, model_select=select, model_verify=verify, include_diagnostics=False):
     if not isinstance(question,str) or not 3<=len(question.strip())<=600: raise ValueError('Question must be 3–600 characters.')
     if mode not in ('demo','live'): raise ValueError('Invalid mode')
     if fault!='none' and mode!='demo': raise ValueError('Fault injection is demo-only')
     question=question.strip(); start=time.monotonic(); trace=[]; limits=[]; calls=0; model_calls=0
+    def error_category(exc):
+        return exc.kind if isinstance(exc,ToolError) else 'internal_'+type(exc).__name__
     fixture=FixtureTools(fault) if mode=='demo' else None
     available={'wiki','github','web'} if mode=='demo' else {'wiki','github'}|({'web'} if os.getenv('TAVILY_API_KEY') else set())
     if adapters is not None: available=set(adapters)
@@ -93,13 +95,15 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
                 elif fixture: raw=fixture.search(step.tool,step.query,4)
                 else: raw=LIVE[step.tool](step.query,4)
                 accepted,rejected=normalize(raw,step.tool,question,step.query,mode)
-                events.append({'stage':'retrieve','tool':step.tool,'attempt':attempt,'status':'ok','accepted':len(accepted),'rejected':rejected,'ms':round((time.monotonic()-t)*1000)})
+                events.append({'stage':'retrieve','tool':step.tool,'query':step.query,'attempt':attempt,'status':'ok','raw_count':len(raw),'accepted':len(accepted),'rejected':rejected,'ms':round((time.monotonic()-t)*1000)})
+                if include_diagnostics:
+                    events[-1]['accepted_records']=[{'title':e.title,'host':urlsplit(e.url).hostname,'score':e.score,'chars':len(e.text)} for e in accepted]
                 return accepted,events,attempted,None
             except ToolError as e:
                 kind=e.kind; retry=e.retryable
             except (TypeError,KeyError,AttributeError,ValueError): kind='malformed_schema'; retry=False
             except Exception: kind='unexpected_tool_error'; retry=False
-            events.append({'stage':'retrieve','tool':step.tool,'attempt':attempt,'status':'error','error':kind,'ms':round((time.monotonic()-t)*1000)})
+            events.append({'stage':'retrieve','tool':step.tool,'query':step.query,'attempt':attempt,'status':'error','error':kind,'ms':round((time.monotonic()-t)*1000)})
             if not retry or attempt==2: return [],events,attempted,kind
             time.sleep(.15)
         raise AssertionError('unreachable')
@@ -140,22 +144,30 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
         else: remaining.append(e)
     evidence=[replace(e,id=f'S{i}') for i,e in enumerate((first+remaining)[:16 if mode=='live' else 8],1)]
     trace.append({'stage':'filter','status':'ok','candidates':len(candidates),'unique':len(unique),'retained':len(evidence)})
+    if include_diagnostics:
+        trace.append({'stage':'evidence_snapshot','status':'ok','records':[{'id':e.id,'title':e.title,'url':e.url,'tool':e.tool,'score':e.score,'text':e.text} for e in evidence]})
     findings=[]; analysis=[]; sections=[]; model_status='not_requested'; selected_count=0; supplemented=0
     proposed_count=0; accepted_count=0
     if evidence and use_model and mode=='live' and (os.getenv('GROQ_API_KEY') or model_select is not select):
         model_calls=1
         try:
+            mt=time.monotonic()
             proposal=model_select(question,evidence,12)
-            claims=proposed_claims(proposal,evidence,shape)
+            trace.append({'stage':'model_proposal','status':'ok','ms':round((time.monotonic()-mt)*1000),'meta':proposal.get('_provider_meta',{}) if isinstance(proposal,dict) else {}})
+            claim_audit={}
+            claims=proposed_claims(proposal,evidence,shape,claim_audit)
+            trace.append({'stage':'claim_validation','status':'ok',**claim_audit,'passed':len(claims)})
             proposed_count=len(claims)
             if claims:
                 model_calls+=1
                 try:
-                    sections=approved_sections(claims,model_verify(question,claims,12))
+                    vt=time.monotonic()
+                    verdict=model_verify(question,claims,12)
+                    sections=approved_sections(claims,verdict)
                     accepted_count=sum(len(s['claims']) for s in sections)
-                    trace.append({'stage':'claim_review','status':'ok','proposed':proposed_count,'accepted':accepted_count,'rejected':proposed_count-accepted_count})
-                except Exception:
-                    trace.append({'stage':'claim_review','status':'error','proposed':proposed_count,'accepted':0})
+                    trace.append({'stage':'claim_review','status':'ok','proposed':proposed_count,'accepted':accepted_count,'rejected':proposed_count-accepted_count,'ms':round((time.monotonic()-vt)*1000),'meta':verdict.get('_provider_meta',{}) if isinstance(verdict,dict) else {}})
+                except Exception as exc:
+                    trace.append({'stage':'claim_review','status':'error','proposed':proposed_count,'accepted':0,'error':error_category(exc),'ms':round((time.monotonic()-vt)*1000)})
                     limits.append('Claim review unavailable; no paraphrased claims published.')
                 if sections:
                     findings=evidence_findings(sections); selected_count=len(findings); model_status='reviewed'
@@ -165,7 +177,8 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
                 findings=verified_findings(proposal,evidence)
                 selected_count=len(findings); model_status='verified' if findings else 'rejected'
                 if not findings: limits.append('Model returned no verifiable spans; used extractive fallback.')
-        except Exception:
+        except Exception as exc:
+            trace.append({'stage':'model_proposal','status':'error','error':error_category(exc)})
             model_status='error'; limits.append('Model unavailable or malformed; used extractive fallback.')
     elif mode=='live' and use_model: model_status='no_key'; limits.append('GROQ_API_KEY absent; used extractive fallback.')
     if not findings: findings=extractive(evidence)

@@ -11,8 +11,18 @@ def _call(prompt,data,timeout,tokens):
     if model.startswith('openai/gpt-oss-'): payload['reasoning_effort']='low'
     data=request_json('https://api.groq.com/openai/v1/chat/completions',
         headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'},payload=payload,timeout=timeout)
-    try: return json.loads(data['choices'][0]['message']['content'])
-    except (KeyError,IndexError,TypeError,ValueError): raise ToolError('malformed_model_output') from None
+    finish='unknown'
+    try:
+        choice=data['choices'][0]
+        if choice.get('finish_reason') in ('stop','length','tool_calls','content_filter'):
+            finish=choice['finish_reason']
+        result=json.loads(choice['message']['content'])
+        if not isinstance(result,dict): raise ValueError('not an object')
+        usage=data.get('usage',{})
+        result['_provider_meta']={'finish_reason':finish, 'usage':{k:usage[k] for k in ('prompt_tokens','completion_tokens','total_tokens') if isinstance(usage.get(k),int)}} if isinstance(usage,dict) else {'finish_reason':finish}
+        return result
+    except (KeyError,IndexError,TypeError,ValueError,AttributeError):
+        raise ToolError('malformed_model_output'+(':'+finish if finish!='unknown' else '')) from None
 
 def select(question,evidence,timeout=12):
     prompt=(
