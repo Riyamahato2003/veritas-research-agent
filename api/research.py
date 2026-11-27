@@ -1,6 +1,5 @@
 """HTTP boundary for the existing Veritas engine. No credentials returned to clients."""
 from http.server import BaseHTTPRequestHandler
-import hmac
 import json
 import os
 import sys
@@ -14,12 +13,11 @@ MAX_BODY = 4096
 
 
 def capabilities():
-    paid = bool(os.getenv('BRAVE_API_KEY') or os.getenv('OPENAI_API_KEY'))
-    code = bool(os.getenv('VERITAS_LIVE_ACCESS_CODE'))
-    public = os.getenv('VERITAS_ALLOW_PUBLIC_LIVE', '').lower() == 'true'
-    return {'demo': True, 'live': paid and (code or public),
-            'access_code_required': code, 'providers': {'github': True, 'wiki': True,
-            'web': bool(os.getenv('BRAVE_API_KEY')), 'model': bool(os.getenv('OPENAI_API_KEY'))}}
+    web = bool(os.getenv('BRAVE_API_KEY'))
+    model = bool(os.getenv('GROQ_API_KEY'))
+    return {'demo': True, 'live': web or model,
+            'access_code_required': False, 'providers': {'github': True, 'wiki': True,
+            'web': web, 'model': model}}
 
 
 def request_report(data):
@@ -36,10 +34,6 @@ def request_report(data):
         caps = capabilities()
         if not caps['live']:
             return 403, {'error': 'Live research is not enabled. Demo mode remains available.'}
-        expected = os.getenv('VERITAS_LIVE_ACCESS_CODE', '')
-        supplied = data.get('access_code', '')
-        if expected and (not isinstance(supplied, str) or not hmac.compare_digest(supplied.encode(), expected.encode())):
-            return 403, {'error': 'A valid live research access code is required.'}
     use_model = data.get('use_model', True)
     if not isinstance(use_model, bool):
         return 400, {'error': 'use_model must be a boolean.'}

@@ -113,7 +113,7 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     evidence=[replace(e,id=f'S{i}') for i,e in enumerate((first+remaining)[:8],1)]
     trace.append({'stage':'filter','status':'ok','candidates':len(candidates),'unique':len(unique),'retained':len(evidence)})
     findings=[]; model_status='not_requested'
-    if evidence and use_model and mode=='live' and (os.getenv('OPENAI_API_KEY') or model_select is not select):
+    if evidence and use_model and mode=='live' and (os.getenv('GROQ_API_KEY') or model_select is not select):
         model_calls=1
         try:
             proposal=model_select(question,evidence,8); findings=verified_findings(proposal,evidence)
@@ -121,7 +121,7 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
             if not findings: limits.append('Model returned no verifiable spans; used extractive fallback.')
         except Exception:
             model_status='error'; limits.append('Model unavailable or malformed; used extractive fallback.')
-    elif mode=='live' and use_model: model_status='no_key'; limits.append('OPENAI_API_KEY absent; used extractive fallback.')
+    elif mode=='live' and use_model: model_status='no_key'; limits.append('GROQ_API_KEY absent; used extractive fallback.')
     if not findings: findings=extractive(evidence)
     used={sid for f in findings for sid in f.source_ids}; sources=[e for e in evidence if e.id in used]
     trace.append({'stage':'synthesis','status':model_status,'findings':len(findings)})

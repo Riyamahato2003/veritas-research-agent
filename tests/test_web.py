@@ -25,24 +25,34 @@ class WebTests(unittest.TestCase):
         for data in (None, [], {'question': 42}, {'question': 'x'}, {'question': 'a'*601}, {'question': Q, 'fault': []}, {'question': Q, 'mode': 'fake'}, {'question': Q, 'use_model': 'true'}, {'question': Q, 'mode': 'live', 'fault': 'outage'}):
             self.assertEqual(request_report(data)[0], 400)
 
-    def test_live_disabled_without_gate(self):
-        with patch.dict(os.environ, {'OPENAI_API_KEY':'example'}, clear=True):
+    def test_live_disabled_without_keys(self):
+        with patch.dict(os.environ, {}, clear=True):
             self.assertFalse(capabilities()['live'])
             self.assertEqual(request_report({'question': Q, 'mode': 'live'})[0], 403)
 
-    def test_live_gate(self):
-        with patch.dict(os.environ, {'BRAVE_API_KEY':'example-key','VERITAS_LIVE_ACCESS_CODE':'example-code'}, clear=True):
+    def test_public_live_with_groq(self):
+        with patch.dict(os.environ, {'GROQ_API_KEY':'example-key'}, clear=True):
             self.assertTrue(capabilities()['live'])
+            self.assertTrue(capabilities()['providers']['model'])
+            self.assertFalse(capabilities()['access_code_required'])
             self.assertNotIn('example', json.dumps(capabilities()))
-            self.assertEqual(request_report({'question': Q, 'mode': 'live', 'access_code': 'wrong'})[0],403)
             with patch('api.research.run') as run:
                 run.return_value.to_dict.return_value={'mode':'live'}
-                self.assertEqual(request_report({'question': Q, 'mode': 'live','access_code':'example-code'})[0],200)
+                self.assertEqual(request_report({'question': Q, 'mode': 'live'})[0],200)
                 run.assert_called_once_with(Q,'live','none',True)
 
-    def test_public_live_opt_in(self):
-        with patch.dict(os.environ, {'OPENAI_API_KEY':'example','VERITAS_ALLOW_PUBLIC_LIVE':'true'}, clear=True):
+    def test_public_live_with_brave(self):
+        with patch.dict(os.environ, {'BRAVE_API_KEY':'example-key','VERITAS_LIVE_ACCESS_CODE':'old-code'}, clear=True):
             self.assertTrue(capabilities()['live'])
             self.assertFalse(capabilities()['access_code_required'])
+            self.assertTrue(capabilities()['providers']['web'])
+            with patch('api.research.run') as run:
+                run.return_value.to_dict.return_value={'mode':'live'}
+                self.assertEqual(request_report({'question': Q,'mode':'live'})[0],200)
+
+    def test_openai_key_not_used(self):
+        with patch.dict(os.environ, {'OPENAI_API_KEY':'unused'}, clear=True):
+            self.assertFalse(capabilities()['live'])
+            self.assertFalse(capabilities()['providers']['model'])
 
 if __name__ == '__main__': unittest.main()

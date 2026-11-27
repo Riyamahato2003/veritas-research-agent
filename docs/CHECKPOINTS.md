@@ -13,3 +13,7 @@
 | CP9 Repository | Local Git repository complete; remote pending | Git history and bundle; external GitHub repository creation/push and demo hosting pending |
 
 Actual Git commits represent grouped checkpoints, not fictional historical milestones. No external services were deployed.
+
+## CP11 — Groq migration and public live mode
+
+Replaced the model API with Groq's Chat Completions endpoint; default `openai/gpt-oss-120b` is served by Groq, not OpenAI API. Removed the access-code gate and UI input at the user's request. Added provider-contract and public-live regression tests. Live calls remain unverified until credentials are configured. Public usage is bounded per run but has no distributed rate limit; configure provider limits before sharing widely.

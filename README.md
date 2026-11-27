@@ -22,13 +22,13 @@ Default `demo` mode searches a local, authored fixture corpus. It is not a live 
 ```bash
 # macOS/Linux; on Windows PowerShell use $env:NAME = 'value'
 export BRAVE_API_KEY='your-key'       # optional; recommended for general research
-export OPENAI_API_KEY='your-key'      # optional; enables model-based span selection
-export OPENAI_MODEL='gpt-4o-mini'     # configurable; use a model supporting JSON mode
+export GROQ_API_KEY='your-key'      # optional; enables model-based span selection
+export GROQ_MODEL='openai/gpt-oss-120b'     # configurable; use a model supporting JSON mode
 # export GITHUB_TOKEN='your-token'   # optional; increases GitHub API quota
 python -m veritas "Compare vector databases for RAG" --mode live --json
 ```
 
-Wikipedia and GitHub use public REST endpoints; Brave Search uses its subscription API. Without Brave the general research coverage is limited, and without OpenAI the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The OpenAI response contract is tested with a mock; no live model call was made. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
+Wikipedia and GitHub use public REST endpoints; Brave Search uses its subscription API. Without Brave the general research coverage is limited, and without Groq the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The Groq response contract is tested with a mock; no live Groq call has been verified. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
 
 ## Architecture
 
@@ -100,12 +100,10 @@ Deployment: import this repository into Vercel; the root `vercel.json` configure
 
 | Variable | Purpose |
 |---|---|
-| `OPENAI_API_KEY` | Optional model-based evidence span selection |
+| `GROQ_API_KEY` | Optional model-based evidence span selection |
 | `BRAVE_API_KEY` | Broad live web search; recommended |
-| `OPENAI_MODEL` | Optional, defaults to `gpt-4o-mini` |
-| `VERITAS_LIVE_ACCESS_CODE` | Set a strong random access code and share only with trusted reviewers |
-| `VERITAS_ALLOW_PUBLIC_LIVE` | Optional explicit opt-in (`true`) to ungated live requests; **not recommended** without quota/rate controls |
+| `GROQ_MODEL` | Optional, defaults to `openai/gpt-oss-120b` |
 
-At least one paid-provider key and either an access code or explicit public-live opt-in are required to enable live mode through the web UI. When a code is configured, it is always required, even if public-live opt-in is set. The browser never receives provider keys. This gate is not a full authentication or distributed rate-limiting system; set provider spend limits and avoid exposing paid access publicly. Demo mode always remains available. No browser persistence of the access code is implemented. The dashboard's historical evaluation metrics are fixture-based, not factual-accuracy claims.
+Adding either provider key enables public live research with no access code; add both for broad web search and model-assisted evidence selection. The default open-weight GPT-OSS 120B model is hosted by Groq and uses only GROQ_API_KEY; GROQ_MODEL can override it with another supported JSON-mode model. Keys remain server-side. Per-run limits remain in place, but there is no distributed rate limiting or authentication: configure provider quotas/spend limits and Vercel abuse protections before sharing widely. Demo mode remains available. Historical evaluation metrics are fixture-based, not factual-accuracy claims.
 
 Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs all 29 tests.
