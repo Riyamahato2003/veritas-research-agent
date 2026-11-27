@@ -33,3 +33,5 @@ User-reported CP13 output cited Qdrant passages for Milvus/Chroma claims. Replac
 ## CP15 — General structured research and claim review
 
 Four user-reported live queries exposed incomplete lists, irrelevant repository results and quotation-only comparisons. Replace the active specialized candidate path with topic-independent sections and complementary retrieval. Each proposed claim needs an exact source span; a separate conservative Groq review must affirm its support and relevance. Count reviewed labels/categories separately from sources. Withhold synthesis if review fails, and retain exact excerpts as evidence. The same-model reviewer is fallible; entity identity and eligibility still need human verification. New mocked tests cover unseen entities, cross-entity citations, rejection, duplicate verdicts, and verifier outages.
+
+CP15 regression correction: the first CI run exposed singular/plural mismatches in the stricter relevance filter; corrected without changing the existing tests. Live coverage uses reviewed labels rather than number of source URLs.

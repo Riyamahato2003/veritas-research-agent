@@ -35,8 +35,11 @@ def normalize(rows, tool, question, search, mode='demo'):
         overlap=terms(title+' '+text) & qt; search_overlap=terms(title+' '+text) & st
         if len(text)<25 or not overlap or not search_overlap or (anchors and not anchors & terms(title+' '+text)):
             rejected.append('weak_relevance'); continue
-        if mode=='live' and len(qt)>=4 and len(overlap)<2:
-            rejected.append('weak_relevance'); continue
+        if mode=='live' and len(qt)>=4:
+            # Simple singular/plural normalization for the extra relevance gate.
+            singular=lambda words:{w[:-1] if len(w)>3 and w.endswith('s') else w for w in words}
+            if len(singular(qt)&singular(terms(title+' '+text)))<2:
+                rejected.append('weak_relevance'); continue
         score=round(.7*len(overlap)/max(1,len(qt))+.3*len(search_overlap)/max(1,len(st)),3)
         accepted.append(Evidence(title,url,text,tool,score))
     return accepted,rejected
@@ -188,7 +191,7 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
             limits.append('Distinct labels are a coverage heuristic; entity aliases and all eligibility criteria are not independently established.')
             status='partial' if findings else status
     if len(sources)<2: limits.append('Fewer than two usable sources; cannot establish a robust answer.')
-    if requested and len(sources)<int(requested.group(1)):
+    if mode=='demo' and requested and len(sources)<int(requested.group(1)):
         limits.append('Requested result count exceeds usable evidence count; coverage is incomplete.'); status='partial' if findings else status; confidence='low'
     if mode=='live' and 'web' not in available: limits.append('Broad web search disabled; configure TAVILY_API_KEY for general research.'); status='partial' if findings else status; confidence='low'
     if status=='partial' and len(sources)<2: confidence='low'
