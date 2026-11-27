@@ -41,7 +41,7 @@ def normalize(rows, tool, question, search):
 def verified_findings(proposal,evidence):
     if not isinstance(proposal,dict) or not isinstance(proposal.get('findings'),list): return []
     index={e.id:e for e in evidence}; found=[]; seen=set()
-    for item in proposal['findings'][:6]:
+    for item in proposal['findings'][:8]:
         if not isinstance(item,dict): continue
         sid,quote=item.get('source_id'),item.get('quote')
         if not isinstance(sid,str) or not isinstance(quote,str) or sid not in index: continue
@@ -52,6 +52,23 @@ def verified_findings(proposal,evidence):
 def extractive(evidence):
     return [Finding(e.text[:600].rsplit(' ',1)[0] if len(e.text)>600 else e.text,[e.id]) for e in evidence[:6]]
 
+def linked_analysis(proposal, findings, evidence):
+    """Structural linkage and lexical sanity check, not a semantic truth verifier."""
+    if not isinstance(proposal,dict) or not isinstance(proposal.get('analysis'),list):
+        return []
+    quotes={f.source_ids[0]:f.statement for f in findings}
+    titles={e.id:e.title for e in evidence}
+    result=[]
+    for item in proposal['analysis'][:6]:
+        if not isinstance(item,dict): continue
+        statement,ids=item.get('statement'),item.get('source_ids')
+        if not isinstance(statement,str) or not 25<=len(statement.strip())<=700 or INJECTION.search(statement) or re.search(r'https?://',statement,re.I): continue
+        if not isinstance(ids,list) or not 1<=len(ids)<=6 or any(not isinstance(s,str) or s not in quotes for s in ids): continue
+        ids=list(dict.fromkeys(ids))
+        if not all(terms(statement) & terms(titles.get(s,'')+' '+quotes[s]) for s in ids): continue
+        result.append(Finding(statement.strip(),ids))
+    return result
+
 def run(question, mode='demo', fault='none', use_model=True, adapters=None, model_select=select):
     if not isinstance(question,str) or not 3<=len(question.strip())<=600: raise ValueError('Question must be 3–600 characters.')
     if mode not in ('demo','live'): raise ValueError('Invalid mode')
@@ -60,7 +77,7 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     fixture=FixtureTools(fault) if mode=='demo' else None
     available={'wiki','github','web'} if mode=='demo' else {'wiki','github'}|({'web'} if os.getenv('TAVILY_API_KEY') else set())
     if adapters is not None: available=set(adapters)
-    steps=plan(question,available)
+    steps=plan(question,available,mode=mode)
     if not steps: raise ValueError('No research tools configured')
     trace.append({'stage':'plan','status':'ok','steps':len(steps)})
     def execute(step):
@@ -94,10 +111,20 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     # One conditional recovery step; no open-ended autonomous loop.
     requested = re.search(r'\b(?:find|list|compare|top)\s+(\d{1,2})\b',question,re.I)
     target = min(8,int(requested.group(1))) if requested else 2
-    if len({e.url for e in candidates})<max(2,target):
+    comparison=bool(re.search(r'\b(compare|comparison|versus|tradeoffs?|pros and cons)\b',question,re.I))
+    sparse=len({e.url for e in candidates})<max(2,target)
+    # A comparison needs more than a count of URLs. Spend at most one extra
+    # basic web query for complementary evidence, retaining the original budget.
+    comparative_followup=mode=='live' and comparison and 'web' in available
+    if sparse or comparative_followup:
         untried=sorted(available-{s.tool for s in steps})
-        recovery=Step(untried[0] if untried else steps[0].tool,' '.join(sorted(terms(question)))[:180] or question[:180],'Recovery: broaden search after insufficient evidence')
-        steps.append(recovery); trace.append({'stage':'replan','status':'triggered','reason':'unique evidence count below target'})
+        if comparative_followup:
+            reason='Comparison-focused follow-up for feature and tradeoff evidence'
+            recovery=Step('web',question[:330]+' comparison features tradeoffs practical limitations',reason)
+        else:
+            reason='Recovery: broaden search after insufficient evidence'
+            recovery=Step(untried[0] if untried else steps[0].tool,' '.join(sorted(terms(question)))[:180] or question[:180],reason)
+        steps.append(recovery); trace.append({'stage':'replan','status':'triggered','reason':reason})
         candidates+=gather([recovery])
     unique={}
     for e in sorted(candidates,key=lambda x:-x.score):
@@ -112,20 +139,30 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
         else: remaining.append(e)
     evidence=[replace(e,id=f'S{i}') for i,e in enumerate((first+remaining)[:8],1)]
     trace.append({'stage':'filter','status':'ok','candidates':len(candidates),'unique':len(unique),'retained':len(evidence)})
-    findings=[]; model_status='not_requested'
+    findings=[]; analysis=[]; model_status='not_requested'; selected_count=0; supplemented=0
     if evidence and use_model and mode=='live' and (os.getenv('GROQ_API_KEY') or model_select is not select):
         model_calls=1
         try:
-            proposal=model_select(question,evidence,8); findings=verified_findings(proposal,evidence)
+            proposal=model_select(question,evidence,12); findings=verified_findings(proposal,evidence)
+            selected_count=len(findings)
+            analysis=linked_analysis(proposal,findings,evidence)
             model_status='verified' if findings else 'rejected'
             if not findings: limits.append('Model returned no verifiable spans; used extractive fallback.')
         except Exception:
             model_status='error'; limits.append('Model unavailable or malformed; used extractive fallback.')
     elif mode=='live' and use_model: model_status='no_key'; limits.append('GROQ_API_KEY absent; used extractive fallback.')
     if not findings: findings=extractive(evidence)
+    elif mode=='live':
+        # A nonempty model response is not necessarily a sufficiently complete
+        # response. Preserve additional usable evidence without inventing facts.
+        desired=min(len(evidence),8,max(target,5 if comparison else 2))
+        used_ids={sid for f in findings for sid in f.source_ids}
+        extra=extractive([e for e in evidence if e.id not in used_ids])[:max(0,desired-len(findings))]
+        findings.extend(extra); supplemented=len(extra)
+        if supplemented: limits.append('Model selected limited evidence; additional exact passages are included. Distinct entity coverage is not guaranteed.')
     used={sid for f in findings for sid in f.source_ids}; sources=[e for e in evidence if e.id in used]
-    trace.append({'stage':'synthesis','status':model_status,'findings':len(findings)})
-    # No model-provided URLs or uncited free-form assertions enter the response.
+    trace.append({'stage':'synthesis','status':model_status,'findings':len(findings),'model_selected':selected_count,'supplemented':supplemented,'analysis_items':len(analysis)})
+    # Exact findings remain separate from source-linked model interpretations.
     confidence='low'; status='insufficient'
     if findings:
         status='partial' if len(sources)<2 or limits else 'complete'
@@ -134,6 +171,9 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     if findings: limits.append('Exact evidence matching is not semantic entailment, source accuracy, or exhaustive coverage; rankings and freshness are unverified.')
     if re.search(r'\b(top|best|latest|current|today|2026)\b',question,re.I):
         limits.append('Requested ranking or recency cannot be established from snippets alone.'); status='partial' if findings else status
+    if mode=='live' and comparison and len(analysis)<2 and findings:
+        limits.append('Comparative analysis remains incomplete; exact passages alone do not establish tradeoffs.'); status='partial'; confidence='low'
+    if analysis: limits.append('AI analysis has source-ID and lexical checks only; interpretations are not independently verified for entailment.')
     if len(sources)<2: limits.append('Fewer than two usable sources; cannot establish a robust answer.')
     if requested and len(sources)<int(requested.group(1)):
         limits.append('Requested result count exceeds usable evidence count; coverage is incomplete.'); status='partial' if findings else status; confidence='low'
@@ -141,4 +181,4 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     if status=='partial' and len(sources)<2: confidence='low'
     short=' '.join(f'{f.statement} [{f.source_ids[0]}]' for f in findings[:3]) if findings else 'Insufficient verified evidence to answer this question safely.'
     trace.append({'stage':'verify','status':'ok','linked_findings':len(findings),'confidence':confidence})
-    return Report(question,short,findings,sources,confidence,limits,['Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability.'],['Verify primary sources and compare evidence against the intended decision criteria.' if findings else 'Rephrase with specific entities or restore research providers, then retry.'],status,mode,steps,trace,{'tool_attempts':calls,'model_calls':model_calls,'elapsed_ms':round((time.monotonic()-start)*1000),'citation_integrity':all(s in {e.id for e in sources} for f in findings for s in f.source_ids)})
+    return Report(question,short,findings,sources,confidence,limits,['Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability.'],['Verify primary sources and compare evidence against the intended decision criteria.' if findings else 'Rephrase with specific entities or restore research providers, then retry.'],status,mode,steps,trace,{'tool_attempts':calls,'model_calls':model_calls,'elapsed_ms':round((time.monotonic()-start)*1000),'citation_integrity':all(s in {e.id for e in sources} for f in findings+analysis for s in f.source_ids),'evidence_retained':len(evidence),'model_selected':selected_count,'analysis_items':len(analysis)},analysis=analysis)

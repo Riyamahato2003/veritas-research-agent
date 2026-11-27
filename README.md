@@ -28,7 +28,7 @@ export GROQ_MODEL='openai/gpt-oss-120b'     # configurable; use a model supporti
 python -m veritas "Compare vector databases for RAG" --mode live --json
 ```
 
-Wikipedia and GitHub use public REST endpoints; Tavily Search uses its API with basic search depth and automatic depth selection disabled to limit credit usage. Without Tavily the general research coverage is limited, and without Groq the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The Groq response contract is tested with a mock; no live Groq call has been verified. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
+Wikipedia and GitHub use public REST endpoints; Tavily Search uses its API with basic search depth and automatic depth selection disabled to limit credit usage. Without Tavily the general research coverage is limited, and without Groq the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The Groq response contract is tested with a mock. A user-reported deployed live run returned two cited vector-database findings; CP13 addresses incomplete comparative synthesis. Post-change live quality still requires verification. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
 
 ## Architecture
 
@@ -53,7 +53,7 @@ flowchart TD
 
 **Tools:** GitHub search for repository descriptions; Wikipedia for background and concepts; Tavily Search for broader research and official positioning. Business questions prefer web search, technical questions include repository search, and general questions prefer background/broad discovery. Routing uses keywords and a small set of domain-specific anchors; unfamiliar or multilingual questions can be misrouted.
 
-**Data flow:** `Step`, `Evidence`, `Finding`, and `Report` dataclasses define the output contract. `planner.py` proposes up to three initial steps. `agent.py` executes them concurrently, normalizes rows, rejects malformed entries, invalid URL schemes/hosts, obvious injection phrases, and weak lexical matches, then deduplicates by normalized URL and ranks using relevance and domain diversity. If unique evidence falls below the target, it tries one additional query/tool. The model, when enabled, only proposes exact source spans; it has no tool execution or credential access. A deterministic validator checks each ID and passage against retrieved evidence. Invalid output falls back to extractive findings. No model-generated URLs or free-form factual claims are accepted. The short answer combines a few findings; all retained findings are individually cited. The source gate is structural, not a truth/entailment proof.
+**Data flow:** `Step`, `Evidence`, `Finding`, and `Report` dataclasses define the output contract. `planner.py` proposes up to three initial steps. `agent.py` executes them concurrently, normalizes rows, rejects malformed entries, invalid URL schemes/hosts, obvious injection phrases, and weak lexical matches, then deduplicates by normalized URL and ranks using relevance and domain diversity. If unique evidence falls below the target or a live comparison needs complementary tradeoff evidence, it tries one additional query/tool. Live web queries preserve the original question; comparisons use the one bounded follow-up for feature and tradeoff evidence. The model, when enabled, proposes exact source spans and separately labeled analysis; it has no tool execution or credential access. A deterministic validator checks each finding ID and exact passage against retrieved evidence. Analysis must cite verified finding IDs and pass lexical checks; semantic entailment is not established. Sparse model selections are supplemented with exact passages. Invalid model output falls back to extraction. No model-generated URLs are accepted. The short answer remains extractive and analysis is explicitly labeled as interpretation.
 
 ## Reliability, security and tradeoffs
 
@@ -89,7 +89,7 @@ See [evaluation notes](docs/EVALUATION.md), [machine-readable results](docs/eval
 
 ## Demo and submission
 
-The separate MP4 is a narrated walkthrough of actual offline CLI/evaluation runs, with simulated faults labeled. A human-presented recording can be made using [the demo script](docs/DEMO.md). Share the separate demo via a viewable link. A successful live provider smoke test is not yet claimed.
+The separate MP4 is a narrated walkthrough of actual offline CLI/evaluation runs, with simulated faults labeled. A human-presented recording can be made using [the demo script](docs/DEMO.md). Share the separate demo via a viewable link. A user-reported live run demonstrated that the deployed agent returned cited findings, but comparative completeness and provider-specific success require inspection of the execution trace.
 
 
 ## Web workspace / Vercel
@@ -106,4 +106,4 @@ Deployment: import this repository into Vercel; the root `vercel.json` configure
 
 Adding either provider key enables public live research with no access code; add both for broad web search and model-assisted evidence selection. The default open-weight GPT-OSS 120B model is hosted by Groq and uses only GROQ_API_KEY; GROQ_MODEL can override it with another supported JSON-mode model. Keys remain server-side. Per-run limits remain in place, but there is no distributed rate limiting or authentication: configure provider quotas/spend limits and Vercel abuse protections before sharing widely. Demo mode remains available. Historical evaluation metrics are fixture-based, not factual-accuracy claims.
 
-Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs all 29 tests.
+Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs the complete regression suite.

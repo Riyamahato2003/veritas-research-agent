@@ -15,6 +15,9 @@ def main():
     for s in r.plan: print(f'  {s.tool}: {s.query} — {s.reason}')
     print('\nSHORT ANSWER\n'+r.short_answer+'\n\nKEY FINDINGS')
     for f in r.key_findings: print(f'  [{", ".join(f.source_ids)}] {f.statement}')
+    if r.analysis:
+        print('\nAI ANALYSIS (source-linked interpretation, not independently verified)')
+        for f in r.analysis: print(f'  [{", ".join(f.source_ids)}] {f.statement}')
     print('\nSOURCES'); [print(f'  [{s.id}] {s.title}: {s.url}') for s in r.sources_used]
     print('\nLIMITATIONS / ASSUMPTIONS'); [print('  - '+x) for x in r.limitations+r.assumptions]
     print('\nNEXT STEPS'); [print('  - '+x) for x in r.suggested_next_steps]

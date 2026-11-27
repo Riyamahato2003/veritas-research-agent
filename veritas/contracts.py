@@ -42,5 +42,6 @@ class Report:
     plan: list[Step]
     trace: list[dict]
     metrics: dict = field(default_factory=dict)
+    analysis: list[Finding] = field(default_factory=list)
     def to_dict(self):
         return asdict(self)

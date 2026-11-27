@@ -21,3 +21,7 @@ Replaced the model API with Groq's Chat Completions endpoint; default `openai/gp
 ## CP12 — Tavily web search
 
 Replaced Brave with Tavily basic search using `TAVILY_API_KEY`. Retained the `web` tool identity, planner, fixtures, and evidence validation. Automatic search-depth selection and provider-generated answers are disabled. Added request-contract, missing-key, and malformed-response tests.
+
+## CP13 — Live answer coverage and comparative synthesis
+
+User-reported vector-database run returned two definitions for a requested three-way comparison. Preserve full live web query intent, use the existing single recovery budget for comparison-focused evidence, supplement sparse model selections with exact passages, and expose separately labeled source-linked AI analysis with structural citation and lexical checks. This is not semantic entailment verification or a guarantee of distinct entity coverage. Added mocked regression cases; re-run live research to assess quality.
