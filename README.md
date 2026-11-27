@@ -28,7 +28,7 @@ export GROQ_MODEL='openai/gpt-oss-120b'     # configurable; use a model supporti
 python -m veritas "Compare vector databases for RAG" --mode live --json
 ```
 
-Wikipedia and GitHub use public REST endpoints; Tavily Search uses basic search, with automatic depth selection disabled to limit credit use. Without Tavily, general research coverage is limited; without Groq, live answers use a deterministic evidence fallback. Live mode **never** silently falls back to fixtures. On 2026-11-27, the public site and `cp30-prototype` API loaded and accepted controlled live queries with both providers configured. See [evaluation notes](docs/EVALUATION.md) for the observed vector-database and HR-tech gaps; successful provider calls do not establish answer correctness. API access, quotas, and billing remain the operator's responsibility. `docs/live-network-check.json` is a historical failed-network run, not the current availability result.
+Wikipedia and GitHub use public REST endpoints; Tavily Search uses basic search, with automatic depth selection disabled to limit credit use. Without Tavily, general research coverage is limited; without Groq, live answers use a deterministic evidence fallback. Live mode **never** silently falls back to fixtures. On 2026-11-27, the public site and `cp30-prototype` API loaded and accepted controlled live queries with both providers configured. See [evaluation notes](docs/EVALUATION.md) and [final live vector report](samples/live-vector.json) / [final live HR report](samples/live-hr.json) for the observed gaps; successful provider calls do not establish answer correctness. API access, quotas, and billing remain the operator's responsibility. `docs/live-network-check.json` is a historical failed-network run, not the current availability result.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ veritas/     contracts, planner, adapters, fixture corpus, model, agent, CLI
 tests/       deterministic and mocked adapter regression tests
 evaluate.py  11 scenario checks; writes samples and evaluation results
 baseline.py single-tool comparison on the same fixture inputs
-samples/    3 generated JSON reports: HR, vector search, total outage
+samples/    offline scenario reports, final live HR/vector runs, total-outage report
 docs/       evaluation, checkpoints, logs, walkthrough script
 .github/    CI workflow
 ```
