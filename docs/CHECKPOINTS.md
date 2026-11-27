@@ -25,3 +25,7 @@ Replaced Brave with Tavily basic search using `TAVILY_API_KEY`. Retained the `we
 ## CP13 — Live answer coverage and comparative synthesis
 
 User-reported vector-database run returned two definitions for a requested three-way comparison. Preserve full live web query intent, use the existing single recovery budget for comparison-focused evidence, supplement sparse model selections with exact passages, and expose separately labeled source-linked AI analysis with structural citation and lexical checks. This is not semantic entailment verification or a guarantee of distinct entity coverage. Added mocked regression cases; re-run live research to assess quality.
+
+## CP14 — Reject unsupported synthesis and retrieve candidate-specific evidence
+
+User-reported CP13 output cited Qdrant passages for Milvus/Chroma claims. Replace lexical-only synthesis with verbatim-only excerpts; use bounded candidate-specific web follow-up for vector comparisons and render per-entity/criterion evidence with missing fields explicitly marked. Candidate names are retrieval hints, not facts or rankings. Max six retrieval steps (12 attempts) in this specialized live path; original demo budget unchanged. No claim of independent semantic verification.

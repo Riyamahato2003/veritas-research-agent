@@ -15,8 +15,11 @@ def main():
     for s in r.plan: print(f'  {s.tool}: {s.query} — {s.reason}')
     print('\nSHORT ANSWER\n'+r.short_answer+'\n\nKEY FINDINGS')
     for f in r.key_findings: print(f'  [{", ".join(f.source_ids)}] {f.statement}')
+    for row in r.comparison:
+        print('\nCANDIDATE: '+row['entity'])
+        for item in row['evidence']: print(f"  {item['facet']} [{item['source_id']}]: {item['quote']}")
     if r.analysis:
-        print('\nAI ANALYSIS (source-linked interpretation, not independently verified)')
+        print('\nANALYSIS EXCERPTS (verbatim evidence)')
         for f in r.analysis: print(f'  [{", ".join(f.source_ids)}] {f.statement}')
     print('\nSOURCES'); [print(f'  [{s.id}] {s.title}: {s.url}') for s in r.sources_used]
     print('\nLIMITATIONS / ASSUMPTIONS'); [print('  - '+x) for x in r.limitations+r.assumptions]
