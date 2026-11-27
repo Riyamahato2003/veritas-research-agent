@@ -2,15 +2,16 @@
 import os, json
 from .tools import request_json, ToolError
 
-def _call(prompt,data,timeout,tokens):
+def _call(prompt,data,timeout,tokens,model_override=None):
     key=os.getenv('GROQ_API_KEY')
     if not key: return None
-    model=os.getenv('GROQ_MODEL','openai/gpt-oss-120b')
+    model=model_override or os.getenv('GROQ_MODEL','openai/gpt-oss-120b')
+    meta={}
     payload={'model':model,'messages':[{'role':'system','content':prompt},{'role':'user','content':json.dumps(data)}],
              'response_format':{'type':'json_object'},'max_completion_tokens':tokens}
     if model.startswith('openai/gpt-oss-'): payload['reasoning_effort']='low'
     data=request_json('https://api.groq.com/openai/v1/chat/completions',
-        headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'},payload=payload,timeout=timeout)
+        headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'},payload=payload,timeout=timeout,metadata=meta)
     finish='unknown'
     try:
         choice=data['choices'][0]
@@ -20,6 +21,7 @@ def _call(prompt,data,timeout,tokens):
         if not isinstance(result,dict): raise ValueError('not an object')
         usage=data.get('usage',{})
         result['_provider_meta']={'finish_reason':finish, 'usage':{k:usage[k] for k in ('prompt_tokens','completion_tokens','total_tokens') if isinstance(usage.get(k),int)}} if isinstance(usage,dict) else {'finish_reason':finish}
+        result['_provider_meta'].update({'model':model,'rate_limit':meta.get('rate_limit',{})})
         return result
     except (KeyError,IndexError,TypeError,ValueError,AttributeError):
         raise ToolError('malformed_model_output'+(':'+finish if finish!='unknown' else '')) from None

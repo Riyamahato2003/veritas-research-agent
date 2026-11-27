@@ -112,3 +112,26 @@ class V2Tests(unittest.TestCase):
         self.assertNotIn(Q,line)
         self.assertNotIn('https://',line)
         self.assertNotIn('Alpha offers',line)
+
+    def test_shortlist_budget_and_alias_roundtrip(self):
+        idx=Index(Q); idx.add(ROWS,'web',Q)
+        ps=idx.shortlist(limit=2,char_budget=120)
+        self.assertLessEqual(len(ps),2)
+        self.assertLessEqual(sum(len(p.text) for p in ps),120)
+        def model(stage,data,t):
+            if stage=='intent': return {}
+            if stage=='review':
+                self.assertTrue(all(c['id'].startswith('C') for c in data['claims']))
+                self.assertTrue(all(p['id'].startswith('P') for p in data['passages']))
+                return {'verdicts':[{'id':c['id'],'supported':True,'reason':'supported'} for c in data['claims']]}
+            p=next(p for p in data['passages'] if p['text'].startswith('Alpha'))
+            self.assertRegex(p['id'],r'^P\d+$')
+            return {'sections':[{'label':'Alpha','category':'candidate','claims':[{'statement':p['text'],'requirement_id':'R1','passage_ids':[p['id']]}]}]}
+        r=run_live(Q,adapters={'web':lambda q,t:ROWS},model=model)
+        self.assertTrue(r.sections)
+        self.assertRegex(r.sections[0]['claims'][0]['passage_ids'][0],r'^S[0-9a-f]{12}-P[0-9a-f]{12}$')
+
+    def test_quota_header_allowlist(self):
+        from veritas.tools import rate_headers
+        headers={'retry-after':'17','x-ratelimit-remaining-tokens':'123','x-ratelimit-reset-tokens':'12.3s','Authorization':'secret','x-ratelimit-limit-tokens':'invalid'}
+        self.assertEqual(rate_headers(headers),{'retry-after':17,'x-ratelimit-remaining-tokens':123,'x-ratelimit-reset-tokens':'12.3s'})

@@ -1,5 +1,5 @@
 """Read-only adapters. Fixed endpoints, bounded responses, no arbitrary URL fetch."""
-import json, os, urllib.request, urllib.parse, urllib.error, socket
+import json, os, urllib.request, urllib.parse, urllib.error, socket, re
 from pathlib import Path
 from .contracts import terms
 
@@ -13,12 +13,26 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 OPENER=urllib.request.build_opener(NoRedirect())
 
-def request_json(url, params=None, headers=None, payload=None, timeout=4):
+def rate_headers(headers):
+    """Allowlist only numeric quota metadata; never expose arbitrary headers."""
+    result={}
+    if headers is None: return result
+    for name in ('x-ratelimit-limit-tokens','x-ratelimit-remaining-tokens','x-ratelimit-limit-requests','x-ratelimit-remaining-requests','retry-after'):
+        v=headers.get(name)
+        if isinstance(v,str) and re.fullmatch(r'\d{1,12}',v): result[name]=int(v)
+    for name in ('x-ratelimit-reset-tokens','x-ratelimit-reset-requests'):
+        v=headers.get(name)
+        if isinstance(v,str) and len(v)<=32 and re.fullmatch(r'[0-9.hms]+',v): result[name]=v
+    return result
+
+def request_json(url, params=None, headers=None, payload=None, timeout=4, metadata=None):
     if params: url += '?' + urllib.parse.urlencode(params)
     req=urllib.request.Request(url, data=json.dumps(payload).encode() if payload is not None else None,
         headers={'User-Agent':'VeritasResearch/1.0 (research assignment)', 'Accept':'application/json', **(headers or {})})
     try:
         with OPENER.open(req, timeout=timeout) as r:
+            if metadata is not None and urllib.parse.urlsplit(url).hostname=='api.groq.com':
+                metadata['rate_limit']=rate_headers(getattr(r,'headers',None))
             raw=r.read(1_000_001)
             if len(raw)>1_000_000: raise ToolError('oversized_response')
             return json.loads(raw)
@@ -32,7 +46,9 @@ def request_json(url, params=None, headers=None, payload=None, timeout=4):
                 if code in ('json_validate_failed','failed_generation','rate_limit_exceeded','context_length_exceeded','model_not_found','model_decommissioned','invalid_api_key','invalid_request_error','insufficient_quota','tokens_limit_exceeded'):
                     suffix=':'+code
             except Exception: pass
-        raise ToolError(f'http_{e.code}'+suffix, e.code in (408,429,500,502,503,504)) from None
+        error=ToolError(f'http_{e.code}'+suffix, e.code in (408,429,500,502,503,504))
+        if urllib.parse.urlsplit(url).hostname=='api.groq.com': error.rate_limit=rate_headers(e.headers)
+        raise error from None
     except (TimeoutError, socket.timeout): raise ToolError('timeout',True) from None
     except (urllib.error.URLError,OSError): raise ToolError('network_error',True) from None
     except (ValueError, UnicodeError): raise ToolError('malformed_json') from None

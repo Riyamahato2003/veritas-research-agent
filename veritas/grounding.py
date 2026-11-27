@@ -141,20 +141,25 @@ class Index:
                 self.passages.setdefault(pid,Passage(pid,sid,part,round(local,3),origin))
             accepted.append({'source_id':sid,'title':title,'score':score,'provider_score':provider,'chars':len(body),'origin':origin})
         return accepted,counts
-    def shortlist(self,limit=52,preferred=()):
+    def shortlist(self,limit=32,preferred=(),char_budget=8500):
         by_source={}
         for p in sorted(self.passages.values(),key=lambda p:(-p.score,p.id)):
             by_source.setdefault(p.source_id,[]).append(p)
         preferred=set(preferred)
-        chosen=[p for p in self.passages.values() if p.id in preferred][:limit]
-        seen={p.id for p in chosen}
+        chosen=[]; seen=set(); chars=0
+        def add(p):
+            nonlocal chars
+            if p.id not in seen and len(chosen)<limit and chars+len(p.text)<=char_budget:
+                chosen.append(p); seen.add(p.id); chars+=len(p.text)
+        for p in self.passages.values():
+            if p.id in preferred: add(p)
         for i in range(8):
             for ps in by_source.values():
                 if i<len(ps) and ps[i].id not in seen and len(chosen)<limit:
-                    chosen.append(ps[i]); seen.add(ps[i].id)
+                    add(ps[i])
         return chosen
     def model_records(self,passages):
-        return [{'id':p.id,'text':p.text,'source_title':self.sources[p.source_id].title,'host':urlsplit(self.sources[p.source_id].url).hostname,'origin':p.origin} for p in passages]
+        return [{'id':p.id,'text':p.text,'source_title':self.sources[p.source_id].title[:110],'host':urlsplit(self.sources[p.source_id].url).hostname,'origin':p.origin} for p in passages]
 
 def validate(proposal,index,intent,allowed):
     audit={'raw_sections':0,'raw_claims':0,'rejections':{}}; claims=[]; labels=[]; seen=set()

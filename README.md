@@ -111,3 +111,5 @@ Web boundary regression checks are included in `tests/test_web.py`; `python -m u
 ## Production diagnostics
 
 Public live requests expose a per-run `run_id`, stage/error counts, token usage reported by Groq, and a conservative estimated basic Tavily search/extract credit count. Enable **Include retained evidence snapshot** to export evidence text with stable passage IDs. Vercel runtime logs contain only bounded numeric/status summaries, no questions, URLs, prompts or evidence. Provider billing, rate limiting and durable telemetry storage are not implemented. See [research engine and evaluation](docs/RESEARCH_V2.md).
+
+**Groq quota controls:** `GROQ_AUX_MODEL` (optional, defaults to `openai/gpt-oss-20b`) handles planning/review; `GROQ_MODEL` (default `openai/gpt-oss-120b`) handles synthesis. Evidence context is capped and compacted, reviewer inputs deduplicated, and rate-limit headers surfaced. Rate-limit failures stop additional model calls instead of retrying blindly. Actual organization quotas are account-specific.
