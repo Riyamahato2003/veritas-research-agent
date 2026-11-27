@@ -85,6 +85,42 @@ class V2Tests(unittest.TestCase):
         c={'label':'Alpha','category':'candidate','requirement_id':'R2'}
         out=coverage(intent,[c],['Alpha'])
         self.assertEqual(out['covered'],0); self.assertFalse(out['complete'])
+
+    def test_recovery_queries_name_missing_criteria_and_batch_candidates(self):
+        question='Find 5 Indian B2B SaaS startups in HR tech and summarize their positioning.'
+        rows=[{'title':n+' HR platform','url':f'https://{n.lower()}.example/about',
+               'text':f'{n} is an HR SaaS platform serving Indian employers. {n} offers HR workflow software.'}
+              for n in ('Alpha','Beta','Gamma','Delta','Epsilon')]
+        def web(q,t): return rows
+        def model(stage,data,t):
+            if stage=='intent': return {'facets':[],'queries':[question]}
+            if stage=='review': return {'verdicts':[{'id':c['id'],'supported':True,'reason':'supported'} for c in data['claims']]}
+            sections=[]
+            for p in data['passages']:
+                name=next((n for n in ('Alpha','Beta','Gamma','Delta','Epsilon') if p['text'].startswith(n)),None)
+                if name and 'offers HR workflow' in p['text']:
+                    sections.append({'label':name,'category':'candidate','claims':[{'statement':p['text'],'requirement_id':'R2','passage_ids':[p['id']]}]})
+            return {'sections':sections}
+        r=run_live(question,adapters={'web':web},model=model)
+        self.assertEqual(r.metrics['search_calls'],4)
+        recovery=[q for event in r.trace if event['stage']=='recovery' for q in event['queries']]
+        self.assertEqual(len(recovery),2)
+        self.assertTrue(all('India' in q and 'SaaS' in q for q in recovery))
+        combined=' '.join(recovery)
+        self.assertTrue(all(name in combined for name in ('Alpha','Beta','Gamma','Delta','Epsilon')))
+        self.assertIn('Indian HR-tech B2B SaaS and startup eligibility',r.research_intent['facets'][0]['label'])
+
+    def test_duplicate_candidate_requirement_claims_are_suppressed(self):
+        def model(stage,data,t):
+            if stage=='intent': return {}
+            if stage=='review': return {'verdicts':[{'id':c['id'],'supported':True,'reason':'supported'} for c in data['claims']]}
+            p=next(p for p in data['passages'] if p['text'].startswith('Alpha'))
+            return {'sections':[{'label':'Alpha','category':'candidate','claims':[
+                {'statement':'Alpha offers payroll automation for HR teams.','requirement_id':'R2','passage_ids':[p['id']]},
+                {'statement':'Alpha provides payroll automation to HR departments.','requirement_id':'R2','passage_ids':[p['id']]}]}]}
+        r=run_live(Q,adapters={'web':lambda q,t:ROWS},model=model)
+        self.assertEqual(sum(len(s['claims']) for s in r.sections),1)
+        self.assertTrue(any(e['stage']=='claim_selection' and e['removed_redundant_cells']==1 for e in r.trace))
     def test_model_failure_no_fabrication(self):
         def bad(stage,data,t): raise ToolError('http_429:rate_limit_exceeded')
         r=run_live(Q,adapters={'web':lambda q,t:ROWS},model=bad)
