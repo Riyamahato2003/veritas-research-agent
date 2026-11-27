@@ -6,7 +6,7 @@ This report separates deterministic contract/failure tests from live-provider re
 
 ## Automated checks
 
-Local Python 3.13 run: **68/68 unit and adapter tests passed**; **11/11 scenario checks passed**; baseline comparison completed. Reproduce from the repository root:
+Final local Python 3.13 run: **72/72 unit and adapter tests passed**; **11/11 scenario checks passed**; baseline comparison completed. Final GitHub CI passed on Python 3.10 and 3.13. Reproduce from the repository root:
 
 ```bash
 python -m unittest discover -s tests -v
@@ -43,9 +43,9 @@ The next correction requires every candidate claim to repeat its subject and rej
 
 
 
-## Final deployed live evaluation (2026-11-27)
+## CP31 second-correction live evaluation (2026-11-27)
 
-Both final calls ran against the public production alias after the second CP31 correction was deployed (runtime reports `cp30-prototype`; source commit `d2d26b3`). Raw API responses are preserved as `samples/live-vector.json` and `samples/live-hr.json`. Provider calls succeeded and citation IDs resolved in both; these are single-run observations, not a benchmark.
+These two calls ran against the public production alias after the second CP31 correction (runtime reports `cp30-prototype`; source commit `d2d26b3`) but before the CP32 recovery refinements. Raw API responses are preserved as `samples/live-vector.json` and `samples/live-hr.json`. Provider calls succeeded and citation IDs resolved in both; these are single-run observations, not a benchmark.
 
 | Question | Expected behavior | Observed result | What worked | What failed / limitations |
 |---|---|---|---|---|
@@ -64,6 +64,37 @@ The live rerun therefore confirms the confidence downgrade and catches the speci
 - Search-credit counts are estimates, token counts are provider-reported, and latency is from individual runs.
 - The original assignment document was not present in the repository or connected Drive search; this evaluation follows the full requirements in the supplied project brief.
 
-## Next evaluation iteration
+## Evaluation boundary
 
-Human-review at least 50 diverse questions, including multilingual, conflicting, temporal, adversarial and entity-list queries. Score source relevance, entity eligibility, claim-level support, citation correctness, criterion coverage, unsupported-assertion rate, safe abstention, latency, token use and provider costs. Compare the same frozen evidence through previous and revised synthesis where available. Calibrate confidence only after collecting held-out human judgments.
+This take-home closes with a small set of assignment and unseen live queries plus deterministic offline tests. A 50-question benchmark is outside scope. Before real use, manually review a representative set of claims and sources, then calibrate confidence and measure latency/cost across a larger held-out set.
+
+## Bounded final release validation (2026-11-27)
+
+The final coverage refinements are in production commit `ef7a822d643d42705e367cfdcff6c600396298cc` (`cp30-prototype`). PRs #4–#6 passed GitHub Actions on Python 3.10 and 3.13. Local checks: **72/72 unit tests**, **11/11 offline scenarios**, baseline comparison completed, and `git diff --check` clean. Representative reports contain every mandatory response field: question, short answer, findings, sources, confidence, limitations, assumptions, suggested next steps, plan, trace and metrics. Static UI inspection confirms the report renderer displays confidence, coverage, evidence links/passages, limitations, assumptions, next steps, plan and trace. Direct visual browser verification was blocked by the user declining the browser origin approval; it was not retried by another route.
+
+| Live query | Observed outcome | What worked | Remaining gap |
+|---|---|---|---|
+| `Research the pros and cons of using a multi-agent architecture for customer support automation.` | Complete, medium heuristic confidence; benefits and risks covered (2/2 facets); 4/4 claims accepted; 5 source records; 3 model calls, 2 Tavily searches + 1 extraction estimate; 4,951 tokens; 3.35 s | Best available live happy-path candidate: relevant support-automation framing, linked passages, both sides, no provider errors. Raw report: [`live-success-multiagent.json`](../samples/live-success-multiagent.json). | Manual spot-check found one benefit claim generalizes a vendor case-study result and one risk claim adds “misrouting” beyond the cited passage. Treat this as workflow success with a visible source-quality caveat, not independently verified factual truth. The source mix includes vendor and secondary material. |
+| `Compare different approaches to adding memory in an AI support agent.` | Partial, low confidence; 5 proposed approaches, 0/8 facets reviewed; 25 claims rejected (`entity_not_in_evidence` 12, `claim_subject_missing` 13); 5 model calls, 3 Tavily searches + 1 extraction estimate; 7,994 tokens; 7.76 s | The system withheld unsupported claims and exposed the rejection stage. Raw report: [`live-partial-memory.json`](../samples/live-partial-memory.json). | Retrieved passages described memory generically but did not identify the proposed approach labels in the cited evidence. Planner also generated four requirements for an open-ended approaches question. Primary observed issue: claim/evidence attribution and proposal quality, not provider availability. |
+| `Compare REST APIs, GraphQL and gRPC for communication between microservices in a production environment.` | Final deployed run: partial, low confidence; all 3 explicit alternatives tracked; 4/12 facets covered; GraphQL and gRPC reviewed, REST unresolved; 4 claims accepted, 12 proposed, 8 rejected; 4 searches + 1 extraction estimate; 11,067 tokens; 11.38 s | The target parser retained all three names; bounded recovery queried the named alternatives rather than substitutes. Citation linkage was intact and provider health was OK. Raw report: [`live-partial-unseen.json`](../samples/live-partial-unseen.json). | REST evidence remained insufficient. An earlier attempt returned a 429 at synthesis; after respecting `retry-after: 2`, one retry succeeded. No repeated retry loop was used. This demonstrates partial generalization with explicit gaps, not a complete comparison. |
+| `Summarize how PostgreSQL documentation describes MVCC and its role in concurrent reads and writes.` | Partial, low confidence; 0/2 facets covered; 4 claim proposals rejected for `claim_subject_missing`; 3 model calls, 4 Tavily searches + 1 extraction estimate; 6,515 tokens; 6.17 s | Retrieved official PostgreSQL documentation alongside secondary explanations and exposed the validation failure. | The synthesizer emitted candidate-style claims without explicit subjects for a general explanatory question. The engine withheld them. This is a live failure observation, not a success. |
+| Simulated total retrieval outage | Insufficient, low confidence; no factual claims; 8 bounded simulated attempts | Safe structured abstention and failure trace; no provider credits used. Raw output: [`failure-simulated-outage.json`](../samples/failure-simulated-outage.json). | Offline deterministic simulation, not a live outage. |
+
+The complete multi-agent report was generated on commit `307616969de1d79bd39192cc41289e13f4142a9a`. PRs #5 and #6 only changed explicit named-comparison parsing and recovery, so this tradeoff-query path was unaffected. It remains the best live complete-path demonstration, with its manual claim-quality caveat stated above.
+
+### Root causes and corrections
+
+- **Vector database query:** initial searches emphasized general RAG capabilities; the recovery trace targeted only Chroma and Milvus and repeated a generic “practical tradeoff or limitation” phrase. The remaining R3 facet had no accepted candidate-specific claim. One multi-entity feature was correctly rejected (`feature_owned_by_other_entity`); no broad passage-selection failure is established. The primary observed causes were incomplete criterion-focused recovery and weak candidate-owned tradeoff evidence; facet classification also drifted once. The final code batches missing criteria across candidates within the existing two-search budget and deduplicates after reviewer classification. The vector query was not rerun after this refinement, so improvement is covered by deterministic regressions, not a fresh live claim.
+- **HR-tech query:** discovery returned five names, but retained passages were mostly secondary lists/directories and did not prove Indian B2B SaaS/startup eligibility for any candidate. The reviewer accepted positioning claims but rejected all five recovery eligibility claims as `not_entailed`. Generic eligibility wording and recovery searches for only two candidates compounded the evidence gap. The final rubric and recovery terms now express the India/HR/SaaS constraint explicitly and batch affected candidates; the HR query was not rerun after the final refinement.
+- **Memory comparison:** 25 proposals were rejected because the cited text did not name the synthesized approach or the statement omitted its subject. This is primarily claim/evidence alignment. No content was forced through validation.
+- **Unseen comparison:** the first parser used target 2 and omitted a third explicit name when the planner returned an empty `named` list. A small comma/“and” parser now preserves explicit alternatives. The deployed run tracked all three, then recovery targeted the named options; REST still lacked reviewed evidence.
+
+### Response contract check
+
+Static contract inspection and representative exported reports confirmed `question`, `short_answer`, `key_findings`, `sources_used`, `confidence`, `limitations`, `assumptions`, `suggested_next_steps`, `status`, `plan`, `trace`, and `metrics`. The complete, partial, unseen and failure samples contain these fields; accepted claim source IDs resolve to entries in `sources_used`. Browser-origin approval prevented direct visual verification of the deployed UI. Vercel reports the production deployment READY and public live API requests were exercised; perform the visual UI check during the manual recording.
+
+The original assignment document was read from the supplied pasted text; it is not included in the repository. The provider returned a rate-limit response during one unseen-query attempt; after respecting its `retry-after` value, one retry succeeded. No repeated retry loop was used.
+
+### Manual deployment-protection cleanup
+
+A temporary Vercel **Protection Bypass for Automation** secret was created during protected-preview diagnostics. It remains to be revoked. The earlier Vercel dashboard browser-origin approval was declined, and no alternate access route was used. Manually remove it in **Project Settings → Deployment Protection → Protection Bypass for Automation → revoke/delete secret**. No provider credentials were changed.

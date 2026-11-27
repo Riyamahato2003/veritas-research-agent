@@ -30,13 +30,16 @@ test_model_override_and_malformed (test_model.GroqContractTests.test_model_overr
 test_no_groq_key_does_not_call_openai (test_model.GroqContractTests.test_no_groq_key_does_not_call_openai) ... ok
 test_empty_evidence_not_green (test_prototype_reporting.PrototypeReportingTests.test_empty_evidence_not_green) ... ok
 test_granular_not_all_or_nothing (test_prototype_reporting.PrototypeReportingTests.test_granular_not_all_or_nothing) ... ok
+test_named_unreviewed_candidate_is_coverage_gap_not_discovery_gap (test_prototype_reporting.PrototypeReportingTests.test_named_unreviewed_candidate_is_coverage_gap_not_discovery_gap) ... ok
 test_nonoverlapping_numbered_rubric (test_prototype_reporting.PrototypeReportingTests.test_nonoverlapping_numbered_rubric) ... ok
 test_partial_linked_claims_survive_provider_failure (test_prototype_reporting.PrototypeReportingTests.test_partial_linked_claims_survive_provider_failure) ... ok
 test_review_rejects_extra_assertion (test_prototype_reporting.PrototypeReportingTests.test_review_rejects_extra_assertion) ... ok
 test_reviewer_corrects_valid_facet_only (test_prototype_reporting.PrototypeReportingTests.test_reviewer_corrects_valid_facet_only) ... ok
 test_candidate_claim_rejects_feature_owned_by_another_entity (test_research_v2.V2Tests.test_candidate_claim_rejects_feature_owned_by_another_entity) ... ok
 test_candidate_claim_rejects_passage_without_entity_attribution (test_research_v2.V2Tests.test_candidate_claim_rejects_passage_without_entity_attribution) ... ok
+test_duplicate_candidate_requirement_claims_are_suppressed (test_research_v2.V2Tests.test_duplicate_candidate_requirement_claims_are_suppressed) ... ok
 test_end_to_end_coverage_recovery (test_research_v2.V2Tests.test_end_to_end_coverage_recovery) ... ok
+test_explicit_three_way_comparison_survives_empty_planner_names (test_research_v2.V2Tests.test_explicit_three_way_comparison_survives_empty_planner_names) ... ok
 test_frozen_copy_mismatch_vs_passage_id (test_research_v2.V2Tests.test_frozen_copy_mismatch_vs_passage_id) ... ok
 test_ids_stable_and_exact (test_research_v2.V2Tests.test_ids_stable_and_exact) ... ok
 test_log_redaction (test_research_v2.V2Tests.test_log_redaction) ... ok
@@ -48,6 +51,7 @@ test_open_list_ignores_category_names (test_research_v2.V2Tests.test_open_list_i
 test_partial_eligibility_not_full_coverage (test_research_v2.V2Tests.test_partial_eligibility_not_full_coverage) ... ok
 test_qualification_cannot_be_inferred_from_title (test_research_v2.V2Tests.test_qualification_cannot_be_inferred_from_title) ... ok
 test_quota_header_allowlist (test_research_v2.V2Tests.test_quota_header_allowlist) ... ok
+test_recovery_queries_name_missing_criteria_and_batch_candidates (test_research_v2.V2Tests.test_recovery_queries_name_missing_criteria_and_batch_candidates) ... ok
 test_reviewer_fail_closed (test_research_v2.V2Tests.test_reviewer_fail_closed) ... ok
 test_shortlist_budget_and_alias_roundtrip (test_research_v2.V2Tests.test_shortlist_budget_and_alias_roundtrip) ... ok
 test_target_and_unknown_id (test_research_v2.V2Tests.test_target_and_unknown_id) ... ok
@@ -68,6 +72,6 @@ test_public_live_with_tavily (test_web.WebTests.test_public_live_with_tavily) ..
 test_validation (test_web.WebTests.test_validation) ... ok
 
 ----------------------------------------------------------------------
-Ran 68 tests in 1.594s
+Ran 72 tests in 1.667s
 
 OK

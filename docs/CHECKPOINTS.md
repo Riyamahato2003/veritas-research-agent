@@ -48,3 +48,7 @@ On 2026-11-27, verified that the deployed `cp30-prototype` API and both provider
 
 ### CP31 final production rerun
 After the feature-owner guard shipped, the vector query ran partial/low confidence: 3/3 candidates, 6/9 facets, 0/3 complete, 10/17 claims accepted. The targeted Milvus-owned caveat was rejected during claim validation, and did not appear as a Qdrant claim. The HR query found five names but only 5/10 facets and 0/5 complete; eligibility remained unverified for all. Both runs had healthy providers and intact citation linkage. See the raw reports and limitations in `docs/EVALUATION.md`. CI passed on Python 3.10 and 3.13; local checks passed 68/68 tests and 11/11 scenarios.
+
+## CP32 — Assignment closeout
+
+A focused coverage closeout clarified list eligibility facets, batched missing-candidate criteria within the existing recovery search cap, removed redundant candidate claims after reviewer classification, and preserved explicitly named alternatives when the planner omits them. Named alternatives with no accepted claims are treated as coverage gaps rather than discovery requests. Final local regression coverage passed 72/72; GitHub CI passed on Python 3.10 and 3.13. The live unseen comparison tracked all three candidates but still lacked reviewed REST evidence. See `docs/EVALUATION.md`. No new services or architecture were introduced.
