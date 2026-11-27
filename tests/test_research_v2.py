@@ -209,6 +209,15 @@ class V2Tests(unittest.TestCase):
         intent=intent_from('Compare PostgreSQL versus MySQL',{'named':['PostgreSQL','MySQL']})
         self.assertEqual(intent['named'],['PostgreSQL','MySQL'])
 
+    def test_explicit_three_way_comparison_survives_empty_planner_names(self):
+        q='Compare REST APIs, GraphQL and gRPC for communication between microservices in production.'
+        intent=intent_from(q,{'facets':['performance','scalability'],'queries':[q],'named':[]})
+        self.assertEqual(intent['named'],['REST APIs','GraphQL','gRPC'])
+        self.assertEqual(intent['target'],3)
+        vector=intent_from('Compare open-source vector databases Qdrant, Milvus, and Weaviate.',{'named':[]})
+        self.assertEqual(vector['named'],['Qdrant','Milvus','Weaviate'])
+        self.assertEqual(vector['target'],3)
+
     def test_qualification_cannot_be_inferred_from_title(self):
         idx=Index(Q); idx.add(ROWS,'web',Q)
         p=next(p for p in idx.passages.values() if 'Alpha offers' in p.text)

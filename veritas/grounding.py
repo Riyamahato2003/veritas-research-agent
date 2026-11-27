@@ -70,14 +70,28 @@ def intent_from(question,proposal):
         qt=tokens(question)
         good=[q.strip()[:400] for q in queries[:4] if isinstance(q,str) and 5<=len(q.strip())<=400 and not BAD.search(q) and not re.search(r'https?://',q) and qt & tokens(q)]
         intent['queries']=list(dict.fromkeys([question[:400]]+good))[:3]
-    names=proposal.get('named')
+    names=proposal.get('named') if isinstance(proposal,dict) else None
     # Discovery lists never have a mandatory named-candidate set. Only an explicit
     # comparison of named alternatives can restrict the candidate universe.
-    if intent['shape']=='compare' and isinstance(names,list) and re.search(r'\b(?:vs\.?|versus|and)\b',question,re.I):
-        possible=list(dict.fromkeys(n.strip() for n in names[:8] if isinstance(n,str) and 2<=len(n.strip())<=80 and key(n) and key(n) in key(question) and not BAD.search(n)))
-        generic=re.compile(r'\b(?:companies|startups|tools|alternatives|solutions|platforms|products|options|providers|databases|frameworks)\b',re.I)
+    if intent['shape']=='compare':
+        possible=list(dict.fromkeys(n.strip() for n in names[:8] if isinstance(names,list) and isinstance(n,str) and 2<=len(n.strip())<=80 and key(n) and key(n) in key(question) and not BAD.search(n))) if isinstance(names,list) else []
+        generic=re.compile(r'\b(?:companies|startups|tools|alternatives|solutions|platforms|products|options|providers|databases|frameworks|approaches|different)\b',re.I)
         possible=[n for n in possible if not generic.search(n)]
-        if len(possible)>=2: intent['named']=possible
+        # Recover explicit alternatives from the comparison subject when the
+        # planner omits some. Stop before the use-case preposition to avoid
+        # treating the use case as another candidate.
+        subject=re.sub(r'^\s*(?:compare|contrast|evaluate)\s+(?:the\s+)?','',question,flags=re.I)
+        subject=re.split(r'\s+(?:for|in|across|under|within)\b',subject,maxsplit=1,flags=re.I)[0]
+        parts=[x.strip(' \t.,;:!?') for x in re.split(r'\s*,\s*|\s+and\s+|\s+(?:vs\.?|versus)\s+',subject,flags=re.I)]
+        parts=[re.sub(r'^(?:and|or)\s+','',x,flags=re.I) for x in parts]
+        if parts and generic.search(parts[0]):
+            tail=re.search(r'\b(?:companies|startups|tools|alternatives|solutions|platforms|products|options|providers|databases|frameworks|approaches)\b\s+(.+)$',parts[0],re.I)
+            if tail: parts[0]=tail.group(1).strip()
+        parsed=[x for x in parts if 2<=len(x)<=80 and key(x) and not generic.search(x) and not BAD.search(x)]
+        if len(parsed)>len(possible): possible=list(dict.fromkeys(parsed))[:8]
+        if len(possible)>=2:
+            intent['named']=possible
+            intent['target']=len(possible)
     return intent
 
 @dataclass(frozen=True)
