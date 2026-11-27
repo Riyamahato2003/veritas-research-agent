@@ -109,8 +109,10 @@
     {
       "stage": "retrieve",
       "tool": "web",
+      "query": "Indian HR tech SaaS",
       "attempt": 1,
       "status": "ok",
+      "raw_count": 5,
       "accepted": 5,
       "rejected": [],
       "ms": 0
@@ -118,8 +120,10 @@
     {
       "stage": "retrieve",
       "tool": "wiki",
+      "query": "Indian HR tech SaaS",
       "attempt": 1,
       "status": "ok",
+      "raw_count": 0,
       "accepted": 0,
       "rejected": [],
       "ms": 0
@@ -134,7 +138,13 @@
     {
       "stage": "synthesis",
       "status": "not_requested",
-      "findings": 5
+      "findings": 5,
+      "model_selected": 0,
+      "supplemented": 0,
+      "analysis_items": 0,
+      "reviewed_claims": 0,
+      "coverage": 0,
+      "target": 5
     },
     {
       "stage": "verify",
@@ -146,7 +156,21 @@
   "metrics": {
     "tool_attempts": 2,
     "model_calls": 0,
-    "elapsed_ms": 2,
-    "citation_integrity": true
-  }
+    "elapsed_ms": 0,
+    "citation_integrity": true,
+    "evidence_retained": 5,
+    "model_selected": 0,
+    "analysis_items": 0,
+    "distinct_candidates": 0,
+    "coverage": 0,
+    "coverage_target": 5,
+    "claims_proposed": 0,
+    "claims_accepted": 0,
+    "claims_rejected": 0
+  },
+  "analysis": [],
+  "comparison": [],
+  "sections": [],
+  "research_intent": {},
+  "coverage_details": {}
 }

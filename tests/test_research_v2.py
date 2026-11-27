@@ -27,6 +27,16 @@ class V2Tests(unittest.TestCase):
                            {'label':'Alpha','category':'candidate','claims':[{'statement':'Alpha serves 500 companies.','requirement_id':'R2','passage_ids':[p.id]}]}]}
         valid,_,audit=validate(claim,idx,intent,list(idx.passages))
         self.assertFalse(valid); self.assertEqual(audit['rejections'],{'entity_not_in_evidence':1,'unsupported_number':1})
+    def test_candidate_claim_rejects_passage_without_entity_attribution(self):
+        q='Compare open-source vector databases Qdrant and LanceDB.'
+        rows=[{'title':'Qdrant vector database','url':'https://qdrant.example/docs','text':'Qdrant is an open-source vector database. Qdrant supports metadata filtering.'},
+              {'title':'General vector database techniques','url':'https://guide.example/vector','text':'This vector database supports index compression and hybrid search.'}]
+        idx=Index(q); idx.add(rows,'web',q); intent=intent_from(q,None)
+        ps=list(idx.passages.values())
+        proposal={'sections':[{'label':'Qdrant','category':'candidate','claims':[{'statement':'Qdrant supports metadata filtering and hybrid search.','requirement_id':'R2','passage_ids':[p.id for p in ps]}]}]}
+        valid,_,audit=validate(proposal,idx,intent,list(idx.passages))
+        self.assertFalse(valid)
+        self.assertEqual(audit['rejections'],{'passage_entity_mismatch':1})
     def test_reviewer_fail_closed(self):
         c={'id':'C1'}
         self.assertEqual(review([c],{'verdicts':[{'id':'C1','supported':True},{'id':'C1','supported':True}]}),([],{'duplicate_verdict':1}))
@@ -48,6 +58,7 @@ class V2Tests(unittest.TestCase):
             return {'sections':sections}
         r=run_live(Q,adapters={'web':web},model=model,include_diagnostics=True)
         self.assertEqual(r.status,'complete')
+        self.assertEqual(r.confidence,'medium')
         self.assertEqual(r.metrics['coverage'],2)
         self.assertTrue(r.metrics['recovery_triggered'])
         self.assertEqual(r.metrics['model_calls'],5)

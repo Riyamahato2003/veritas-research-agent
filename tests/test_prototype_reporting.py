@@ -43,7 +43,7 @@ class PrototypeReportingTests(unittest.TestCase):
         r=run_live(Q,adapters={'web':lambda q,t:ROWS},model=model)
         q=r.metrics['quality']
         self.assertEqual(r.status,'partial')
-        self.assertEqual(r.confidence,'medium')
+        self.assertEqual(r.confidence,'low')
         self.assertEqual(q['evidence_status'],'model_reviewed')
         self.assertEqual(q['claims_linked'],6)
         self.assertEqual(q['candidates_reviewed'],3)

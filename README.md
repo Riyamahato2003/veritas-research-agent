@@ -1,6 +1,6 @@
 # Veritas — evidence-first research agent
 
-A focused Platform Engineer take-home submission for Predixion AI. Veritas is a bounded, read-only planner–executor that retrieves evidence, filters noise, verifies cited spans, and returns a structured answer or an explicit abstention. The agent runs through both a CLI and a responsive web workspace.
+A focused, evidence-first research prototype for Predixion AI. Veritas is a bounded, read-only planner–executor that retrieves evidence, filters noise, proposes claim-level synthesis, and returns a structured answer or an explicit abstention. The agent runs through a CLI and responsive web workspace.
 
 ## Quick start
 
@@ -28,7 +28,7 @@ export GROQ_MODEL='openai/gpt-oss-120b'     # configurable; use a model supporti
 python -m veritas "Compare vector databases for RAG" --mode live --json
 ```
 
-Wikipedia and GitHub use public REST endpoints; Tavily Search uses its API with basic search depth and automatic depth selection disabled to limit credit usage. Without Tavily the general research coverage is limited, and without Groq the answer is deterministic and extractive. Live mode **never** silently falls back to fixture data. The live path could not be verified against external services in the build environment because DNS failed; `docs/live-network-check.json` captures the actual unsuccessful attempt. The Groq response contract is tested with a mock. A user-reported deployed live run returned two cited vector-database findings; CP13 addresses incomplete comparative synthesis. Post-change live quality still requires verification. Run a live smoke test before presenting this as a verified live service. API access, quotas, and provider billing remain the operator's responsibility.
+Wikipedia and GitHub use public REST endpoints; Tavily Search uses basic search, with automatic depth selection disabled to limit credit use. Without Tavily, general research coverage is limited; without Groq, live answers use a deterministic evidence fallback. Live mode **never** silently falls back to fixtures. On 2026-11-27, the public site and `cp30-prototype` API loaded and accepted controlled live queries with both providers configured. See [evaluation notes](docs/EVALUATION.md) for the observed vector-database and HR-tech gaps; successful provider calls do not establish answer correctness. API access, quotas, and billing remain the operator's responsibility. `docs/live-network-check.json` is a historical failed-network run, not the current availability result.
 
 ## Architecture
 
@@ -42,7 +42,7 @@ flowchart TD
   T2 --> S[Rank and select evidence]
   R -->|Yes| S
   S --> M[Optional claim proposal + separate model review]
-  M --> V[Verify exact span and source ID]
+  M --> V[Validate passage IDs and candidate attribution]
   V -->|Invalid or unavailable| X[Deterministic extraction]
   V -->|Valid| O[Typed research report]
   X --> O
@@ -53,7 +53,7 @@ flowchart TD
 
 **Tools:** GitHub search for repository descriptions; Wikipedia for background and concepts; Tavily Search for broader research and official positioning. Business questions prefer web search, technical questions include repository search, and general questions prefer background/broad discovery. Routing uses keywords and a small set of domain-specific anchors; unfamiliar or multilingual questions can be misrouted.
 
-**Live data flow (CP17–23):** `research_v2.py` decomposes intent into bounded requirements, retrieves complementary evidence, selectively extracts up to three discovered pages through Tavily, and indexes preserved passages in `grounding.py`. Models return immutable passage IDs rather than reproducing quotes. A separate reviewer validates atomic claims against one or more passages. Coverage counts candidates only when all required facets are reviewed; missing requirements drive one bounded recovery phase. `telemetry.py` provides correlated per-run trace, timing, error codes, tokens, estimated credits and privacy-minimized Vercel log summaries. Offline demo retains its original deterministic fixture and retry engine; legacy injected CP15 tests retain their historical contract. See `docs/RESEARCH_V2.md` for budgets and limitations.
+**Live data flow:** `research_v2.py` decomposes intent into bounded requirements, retrieves complementary evidence, selectively extracts up to three discovered pages through Tavily, and indexes preserved passages in `grounding.py`. Models cite immutable passage IDs rather than reproducing quotes. A separate reviewer evaluates atomic claims; deterministic validation checks citation IDs, numbers, eligibility qualifiers and candidate attribution. Candidate-specific claims now require every cited passage or its title to identify that candidate, preventing contextless pronouns from transferring a feature across entities. One bounded recovery pass targets missing requirements. `telemetry.py` returns per-run trace, timing, error codes, token use, estimated credits and privacy-minimized Vercel log summaries. Offline demo retains its deterministic fixtures and failure scenarios. See `docs/RESEARCH_V2.md` for budgets and limitations.
 
 ## Reliability, security and tradeoffs
 
@@ -65,11 +65,13 @@ flowchart TD
 | Weak results | Lexical relevance and domain-specific anchors, URL deduplication, domain diversity | Semantic relevance, source authority scoring, publication date, entity coverage and independent corroboration |
 | Hallucination | Exact source ID/span validation; abstain without evidence | A real source can still be false, stale or out of context; exact matching is not entailment |
 | Prompt injection | Treat sources as data; suspicious phrase heuristic; fixed read-only endpoints; model cannot run commands | Heuristic is bypassable; need adversarial evaluation and isolation; avoid trusting snippets |
-| Confidence | Low/medium heuristic based on source count, domains, failures; no numeric probability or unvalidated high confidence | Calibrate with labeled queries and human review; count sources is not count of distinct entities |
+| Confidence | Live: medium requires complete requested coverage, model-reviewed claims, healthy providers and at least two sources; otherwise low. Demo: authored-fixture heuristic. Any partial/insufficient report is low. Never a probability. | Calibrate against human-reviewed queries; coverage and citations do not establish truth |
 | Tracing | Stage, tool, attempts, elapsed ms, status and rejection codes in each report | Export structured traces to OpenTelemetry; avoid logging raw questions or secrets centrally |
 | Privacy | No persistent storage or API keys in repository; no arbitrary server-side fetching | Live providers receive query text; model receives question and retained evidence. Add consent, redaction, retention controls |
 
 `complete` means sufficient records for the bounded workflow without a detected error, **not** proven factual correctness. `partial` means a known coverage limitation, ranking/recency uncertainty, unavailable provider, or other incomplete evidence. `insufficient` means no accepted evidence. In demo mode these statuses describe fixture behavior only. An evidence span can be misleading even if exact; never treat this as an autonomous decision authority. The agent does not confirm “top” rankings or freshness using snippets. It does not automatically retrieve full primary-source pages.
+
+Every report includes the question, short answer, key findings, cited sources, confidence level, limitations, assumptions and suggested next steps. Live confidence is separate from candidate/criterion coverage, citation linkage, evidence-review status and provider health; an incomplete answer can still include useful claims.
 
 ## Repository layout
 
@@ -85,11 +87,11 @@ docs/       evaluation, checkpoints, logs, walkthrough script
 
 ## Evaluation and production roadmap
 
-See [evaluation notes](docs/EVALUATION.md), [machine-readable results](docs/evaluation-results.json), [baseline results](docs/baseline-results.json), and [checkpoints](docs/CHECKPOINTS.md). The included checks measure behavior and contract integrity; they are not a statistical factual-accuracy benchmark. Next: live provider smoke tests; human-labeled diverse questions and adversarial sources; claim-level entailment and primary-source verification; query budgeting and rate limiting; calibrated confidence, tenant isolation, and observability. Monitor latency by provider, failure/retry rate, zero-result rate, source diversity, citation rejection, abstention rate, token/cost per run, and human-scored answer quality. The CLI remains fully usable without a deployment. The web workspace runs the same engine via a bounded Python HTTP endpoint.
+See [evaluation notes](docs/EVALUATION.md), [machine-readable offline results](docs/evaluation-results.json), [baseline results](docs/baseline-results.json), and [checkpoints](docs/CHECKPOINTS.md). Unit/fault tests use authored fixtures and mocked provider calls; they are not a factual-accuracy benchmark. The live sample runs in the evaluation report are direct provider observations, manually inspected but too small to establish accuracy. A stronger evaluation needs human-labeled queries, adversarial/conflicting sources, claim-level source review, and measured calibration. Production work would add request-level abuse/rate controls, strict cancellable deadlines, durable privacy-reviewed telemetry, and independent human quality monitoring. The web workspace runs the same Python engine through a bounded endpoint.
 
 ## Demo and submission
 
-The separate MP4 is a narrated walkthrough of actual offline CLI/evaluation runs, with simulated faults labeled. A human-presented recording can be made using [the demo script](docs/DEMO.md). Share the separate demo via a viewable link. A user-reported live run demonstrated that the deployed agent returned cited findings, but comparative completeness and provider-specific success require inspection of the execution trace.
+The repository includes a timed recording script in [docs/DEMO.md](docs/DEMO.md). No screen recording is included; recording and hosting a 3–5 minute demo remains a manual submission step. The script distinguishes live research from simulated failure cases.
 
 
 ## Web workspace / Vercel
@@ -114,5 +116,5 @@ Public live requests expose a per-run `run_id`, stage/error counts, token usage 
 
 **Groq quota controls:** `GROQ_AUX_MODEL` (optional, defaults to `openai/gpt-oss-20b`) handles planning/review; `GROQ_MODEL` (default `openai/gpt-oss-120b`) handles synthesis. Evidence context is capped and compacted, reviewer inputs deduplicated, and rate-limit headers surfaced. Rate-limit failures stop additional model calls instead of retrying blindly. Actual organization quotas are account-specific.
 
-### Prototype report metrics (CP26–30)
-Live results distinguish evidence status (model-reviewed / retrieved only / no evidence), published-claim citation linkage, criteria covered, reviewed candidates, fully covered candidates and provider health. These are diagnostics, not a calibrated probability or independent truth check. The legacy confidence field is retained for API compatibility; the live UI does not display it. Numbered lists use a compact fixed eligibility/positioning rubric (plus tradeoffs for comparisons), with all explicit question constraints still required. Review can correct an evidence-supported claim's criterion without altering its text or citation. No extra model calls, services or infrastructure are added.
+### Prototype report metrics
+Live reports distinguish heuristic confidence, evidence status (model-reviewed / retrieved only / no evidence), citation linkage, criterion and candidate coverage, and provider health. None is an independent truth check. Numbered lists use a compact eligibility/positioning rubric (plus tradeoffs for comparisons), with explicit question constraints still required. A reviewer may correct a claim's criterion but cannot rewrite the claim or change its citations. No extra services or infrastructure are used.

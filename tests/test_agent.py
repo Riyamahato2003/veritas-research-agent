@@ -10,7 +10,7 @@ class AgentTests(unittest.TestCase):
         r=run(Q); self.assertEqual(r.mode,'demo'); self.assertGreaterEqual(len(r.sources_used),3)
         text=' '.join(x.title for x in r.sources_used).lower()
         for name in ('qdrant','milvus','weaviate'): self.assertIn(name,text)
-        self.assertEqual(r.status,'partial'); self.assertTrue(r.metrics['citation_integrity'])
+        self.assertEqual(r.status,'partial'); self.assertEqual(r.confidence,'low'); self.assertTrue(r.metrics['citation_integrity'])
         for f in r.key_findings: self.assertTrue(any(f.statement in s.text and s.id in f.source_ids for s in r.sources_used))
     def test_business_routes(self):
         r=run('Find 5 Indian B2B SaaS startups in HR tech and summarize their positioning.')

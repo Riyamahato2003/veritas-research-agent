@@ -17,12 +17,56 @@ test_timeout (test_agent.AgentTests.test_timeout) ... ok
 test_transient (test_agent.AgentTests.test_transient) ... ok
 test_unknown (test_agent.AgentTests.test_unknown) ... ok
 test_vector_grounding (test_agent.AgentTests.test_vector_grounding) ... ok
-test_brave_schema (test_tools.AdapterTests.test_brave_schema) ... ok
+test_cross_entity_fabricated_quotes_and_reviewer_fail_closed (test_comparison.ComparativeResearchTests.test_cross_entity_fabricated_quotes_and_reviewer_fail_closed) ... ok
+test_generic_entities_and_review (test_comparison.ComparativeResearchTests.test_generic_entities_and_review) ... ok
+test_live_web_query_preserves_intent (test_comparison.ComparativeResearchTests.test_live_web_query_preserves_intent) ... ok
+test_review_outage_withholds_paraphrases (test_comparison.ComparativeResearchTests.test_review_outage_withholds_paraphrases) ... ok
+test_tradeoff_categories_and_model_rejection (test_comparison.ComparativeResearchTests.test_tradeoff_categories_and_model_rejection) ... ok
+test_error_type_and_snapshot (test_diagnostics.DiagnosticTests.test_error_type_and_snapshot) ... ok
+test_invalid_diagnostics (test_diagnostics.DiagnosticTests.test_invalid_diagnostics) ... ok
+test_validation_reasons (test_diagnostics.DiagnosticTests.test_validation_reasons) ... ok
+test_groq_endpoint_and_json_mode (test_model.GroqContractTests.test_groq_endpoint_and_json_mode) ... ok
+test_model_override_and_malformed (test_model.GroqContractTests.test_model_override_and_malformed) ... ok
+test_no_groq_key_does_not_call_openai (test_model.GroqContractTests.test_no_groq_key_does_not_call_openai) ... ok
+test_empty_evidence_not_green (test_prototype_reporting.PrototypeReportingTests.test_empty_evidence_not_green) ... ok
+test_granular_not_all_or_nothing (test_prototype_reporting.PrototypeReportingTests.test_granular_not_all_or_nothing) ... ok
+test_nonoverlapping_numbered_rubric (test_prototype_reporting.PrototypeReportingTests.test_nonoverlapping_numbered_rubric) ... ok
+test_partial_linked_claims_survive_provider_failure (test_prototype_reporting.PrototypeReportingTests.test_partial_linked_claims_survive_provider_failure) ... ok
+test_review_rejects_extra_assertion (test_prototype_reporting.PrototypeReportingTests.test_review_rejects_extra_assertion) ... ok
+test_reviewer_corrects_valid_facet_only (test_prototype_reporting.PrototypeReportingTests.test_reviewer_corrects_valid_facet_only) ... ok
+test_candidate_claim_rejects_passage_without_entity_attribution (test_research_v2.V2Tests.test_candidate_claim_rejects_passage_without_entity_attribution) ... ok
+test_end_to_end_coverage_recovery (test_research_v2.V2Tests.test_end_to_end_coverage_recovery) ... ok
+test_frozen_copy_mismatch_vs_passage_id (test_research_v2.V2Tests.test_frozen_copy_mismatch_vs_passage_id) ... ok
+test_ids_stable_and_exact (test_research_v2.V2Tests.test_ids_stable_and_exact) ... ok
+test_log_redaction (test_research_v2.V2Tests.test_log_redaction) ... ok
+test_model_failure_no_fabrication (test_research_v2.V2Tests.test_model_failure_no_fabrication) ... ok
+test_multi_source_claim_and_review (test_research_v2.V2Tests.test_multi_source_claim_and_review) ... ok
+test_named_comparison_stays_named (test_research_v2.V2Tests.test_named_comparison_stays_named) ... ok
+test_noisy_title_and_source_rejection (test_research_v2.V2Tests.test_noisy_title_and_source_rejection) ... ok
+test_open_list_ignores_category_names (test_research_v2.V2Tests.test_open_list_ignores_category_names) ... ok
+test_partial_eligibility_not_full_coverage (test_research_v2.V2Tests.test_partial_eligibility_not_full_coverage) ... ok
+test_qualification_cannot_be_inferred_from_title (test_research_v2.V2Tests.test_qualification_cannot_be_inferred_from_title) ... ok
+test_quota_header_allowlist (test_research_v2.V2Tests.test_quota_header_allowlist) ... ok
+test_reviewer_fail_closed (test_research_v2.V2Tests.test_reviewer_fail_closed) ... ok
+test_shortlist_budget_and_alias_roundtrip (test_research_v2.V2Tests.test_shortlist_budget_and_alias_roundtrip) ... ok
+test_target_and_unknown_id (test_research_v2.V2Tests.test_target_and_unknown_id) ... ok
+test_total_outage (test_research_v2.V2Tests.test_total_outage) ... ok
+test_wrong_entity_and_numbers (test_research_v2.V2Tests.test_wrong_entity_and_numbers) ... ok
 test_github_bad_schema (test_tools.AdapterTests.test_github_bad_schema) ... ok
 test_github_schema (test_tools.AdapterTests.test_github_schema) ... ok
+test_tavily_bad_schema (test_tools.AdapterTests.test_tavily_bad_schema) ... ok
+test_tavily_missing_key (test_tools.AdapterTests.test_tavily_missing_key) ... ok
+test_tavily_schema_and_budget (test_tools.AdapterTests.test_tavily_schema_and_budget) ... ok
 test_wiki_schema (test_tools.AdapterTests.test_wiki_schema) ... ok
+test_live_disabled_without_keys (test_web.WebTests.test_live_disabled_without_keys) ... ok
+test_openai_key_not_used (test_web.WebTests.test_openai_key_not_used) ... ok
+test_outage (test_web.WebTests.test_outage) ... ok
+test_public_demo (test_web.WebTests.test_public_demo) ... ok
+test_public_live_with_groq (test_web.WebTests.test_public_live_with_groq) ... ok
+test_public_live_with_tavily (test_web.WebTests.test_public_live_with_tavily) ... ok
+test_validation (test_web.WebTests.test_validation) ... ok
 
 ----------------------------------------------------------------------
-Ran 23 tests in 1.247s
+Ran 67 tests in 1.599s
 
 OK

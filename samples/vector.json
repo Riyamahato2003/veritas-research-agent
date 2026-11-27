@@ -89,7 +89,7 @@
       "id": "S6"
     }
   ],
-  "confidence": "medium",
+  "confidence": "low",
   "limitations": [
     "Offline fixture corpus: authored example records, not live page content or current verification.",
     "Exact evidence matching is not semantic entailment, source accuracy, or exhaustive coverage; rankings and freshness are unverified.",
@@ -129,8 +129,10 @@
     {
       "stage": "retrieve",
       "tool": "github",
+      "query": "vector database",
       "attempt": 1,
       "status": "ok",
+      "raw_count": 3,
       "accepted": 3,
       "rejected": [],
       "ms": 0
@@ -138,8 +140,10 @@
     {
       "stage": "retrieve",
       "tool": "web",
+      "query": "vector database",
       "attempt": 1,
       "status": "ok",
+      "raw_count": 3,
       "accepted": 3,
       "rejected": [],
       "ms": 0
@@ -147,8 +151,10 @@
     {
       "stage": "retrieve",
       "tool": "wiki",
+      "query": "vector database",
       "attempt": 1,
       "status": "ok",
+      "raw_count": 1,
       "accepted": 1,
       "rejected": [],
       "ms": 0
@@ -163,19 +169,39 @@
     {
       "stage": "synthesis",
       "status": "not_requested",
-      "findings": 6
+      "findings": 6,
+      "model_selected": 0,
+      "supplemented": 0,
+      "analysis_items": 0,
+      "reviewed_claims": 0,
+      "coverage": 0,
+      "target": 3
     },
     {
       "stage": "verify",
       "status": "ok",
       "linked_findings": 6,
-      "confidence": "medium"
+      "confidence": "low"
     }
   ],
   "metrics": {
     "tool_attempts": 3,
     "model_calls": 0,
-    "elapsed_ms": 5,
-    "citation_integrity": true
-  }
+    "elapsed_ms": 1,
+    "citation_integrity": true,
+    "evidence_retained": 7,
+    "model_selected": 0,
+    "analysis_items": 0,
+    "distinct_candidates": 0,
+    "coverage": 0,
+    "coverage_target": 3,
+    "claims_proposed": 0,
+    "claims_accepted": 0,
+    "claims_rejected": 0
+  },
+  "analysis": [],
+  "comparison": [],
+  "sections": [],
+  "research_intent": {},
+  "coverage_details": {}
 }
