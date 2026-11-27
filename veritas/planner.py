@@ -12,5 +12,8 @@ def plan(question, available, mode='demo'):
     elif business and ('hr' in t or 'hrtech' in t): search='Indian HR tech SaaS'
     else: search=' '.join(dict.fromkeys(w for w in re.findall(r'[\w-]+',question) if w.lower() in t))[:180] or question[:180]
     order=['web','wiki'] if business else (['github','web','wiki'] if technical else ['wiki','web'])
+    if mode=='live' and 'web' in available:
+        implementation=bool(t & {'database','databases','tools','framework','frameworks','libraries','software','github','code'}) and not business
+        order=['web','github','wiki'] if implementation else ['web','wiki']
     reason={'wiki':'Background and conceptual context','github':'Public implementation and repository descriptions','web':'Broad discovery and official product positioning'}
     return [Step(tool,question[:400] if mode=='live' and tool=='web' else search,reason[tool]) for tool in order if tool in available][:3]

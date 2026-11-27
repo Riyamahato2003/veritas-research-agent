@@ -29,3 +29,7 @@ User-reported vector-database run returned two definitions for a requested three
 ## CP14 — Reject unsupported synthesis and retrieve candidate-specific evidence
 
 User-reported CP13 output cited Qdrant passages for Milvus/Chroma claims. Replace lexical-only synthesis with verbatim-only excerpts; use bounded candidate-specific web follow-up for vector comparisons and render per-entity/criterion evidence with missing fields explicitly marked. Candidate names are retrieval hints, not facts or rankings. Max six retrieval steps (12 attempts) in this specialized live path; original demo budget unchanged. No claim of independent semantic verification.
+
+## CP15 — General structured research and claim review
+
+Four user-reported live queries exposed incomplete lists, irrelevant repository results and quotation-only comparisons. Replace the active specialized candidate path with topic-independent sections and complementary retrieval. Each proposed claim needs an exact source span; a separate conservative Groq review must affirm its support and relevance. Count reviewed labels/categories separately from sources. Withhold synthesis if review fails, and retain exact excerpts as evidence. The same-model reviewer is fallible; entity identity and eligibility still need human verification. New mocked tests cover unseen entities, cross-entity citations, rejection, duplicate verdicts, and verifier outages.

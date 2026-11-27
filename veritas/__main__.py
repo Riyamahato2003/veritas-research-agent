@@ -15,6 +15,9 @@ def main():
     for s in r.plan: print(f'  {s.tool}: {s.query} — {s.reason}')
     print('\nSHORT ANSWER\n'+r.short_answer+'\n\nKEY FINDINGS')
     for f in r.key_findings: print(f'  [{", ".join(f.source_ids)}] {f.statement}')
+    for section in r.sections:
+        print('\n'+section['label']+' ('+section['category']+')')
+        for claim in section['claims']: print(f"  [{', '.join(claim['source_ids'])}] {claim['statement']}\n  Evidence: {claim['quote']}")
     for row in r.comparison:
         print('\nCANDIDATE: '+row['entity'])
         for item in row['evidence']: print(f"  {item['facet']} [{item['source_id']}]: {item['quote']}")

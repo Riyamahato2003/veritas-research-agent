@@ -44,5 +44,6 @@ class Report:
     metrics: dict = field(default_factory=dict)
     analysis: list[Finding] = field(default_factory=list)
     comparison: list[dict] = field(default_factory=list)
+    sections: list[dict] = field(default_factory=list)
     def to_dict(self):
         return asdict(self)

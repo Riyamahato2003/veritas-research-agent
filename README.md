@@ -41,7 +41,7 @@ flowchart TD
   R -->|No; once only| T2[Broaden query or alternate tool]
   T2 --> S[Rank and select evidence]
   R -->|Yes| S
-  S --> M[Optional LLM span selector]
+  S --> M[Optional claim proposal + separate model review]
   M --> V[Verify exact span and source ID]
   V -->|Invalid or unavailable| X[Deterministic extraction]
   V -->|Valid| O[Typed research report]
@@ -53,14 +53,14 @@ flowchart TD
 
 **Tools:** GitHub search for repository descriptions; Wikipedia for background and concepts; Tavily Search for broader research and official positioning. Business questions prefer web search, technical questions include repository search, and general questions prefer background/broad discovery. Routing uses keywords and a small set of domain-specific anchors; unfamiliar or multilingual questions can be misrouted.
 
-**Data flow:** `Step`, `Evidence`, `Finding`, and `Report` dataclasses define the output contract. `planner.py` proposes up to three initial steps. `agent.py` executes them concurrently, normalizes rows, rejects malformed entries, invalid URL schemes/hosts, obvious injection phrases, and weak lexical matches, then deduplicates by normalized URL and ranks using relevance and domain diversity. If unique evidence falls below the target or a live comparison needs complementary tradeoff evidence, it tries one additional query/tool. Live web queries preserve the original question; generic comparisons use one bounded follow-up. Vector database comparisons use up to three candidate-specific searches in one parallel follow-up phase, with an explicit candidate hint list (not a ranking). The model proposes exact spans; free-form analytical claims are not accepted. Entity/criterion cards use verbatim spans, favor project-specific official sources, and disclose missing criteria. Semantic entailment is not established. Sparse model selections are supplemented with exact passages. Invalid model output falls back to extraction. No model-generated URLs are accepted. The short answer is extractive or a deterministic candidate coverage summary; analysis is verbatim evidence.
+**Data flow:** `Step`, `Evidence`, `Finding`, and `Report` dataclasses define the output contract. `planner.py` proposes up to three initial steps. `agent.py` executes them concurrently, normalizes rows, rejects malformed entries, invalid URL schemes/hosts, obvious injection phrases, and weak lexical matches, then deduplicates by normalized URL and ranks using relevance and domain diversity. Live list/comparison questions use up to two complementary web searches in one bounded follow-up phase; there are no predefined candidate lists in the active research path. The model proposes structured sections and atomic claims with exact quotes; deterministic validation rejects fabricated spans, cross-entity names, and noisy fragments. A separate Groq review receives proposed claims and exact supporting passages; missing, malformed, or rejected verdicts withhold paraphrased claims. Coverage counts reviewed distinct labels or benefit/risk categories, not URLs. Exact passages remain available on failure. The reviewer is the same provider/model by default, so its judgments are not independent truth or formal entailment verification.
 
 ## Reliability, security and tradeoffs
 
 | Concern | Implemented decision | Remaining gap |
 |---|---|---|
 | Timeouts and retries | 4-second socket timeout per retrieval attempt; max two attempts; retry transient HTTP/network failures; 150 ms fixed delay | Not a strict wall-clock deadline; use cancellable clients, exponential backoff/jitter, Retry-After and circuit breakers |
-| Cost and latency | Up to 3 parallel initial steps plus 1 bounded follow-up phase (up to 3 candidate queries for live vector comparisons); max 12 retrieval attempts for that path, 8 otherwise; max 1 optional model call; capped sources and model output | Track tokens, actual cost, provider quotas and p95 latency; cap total request duration |
+| Cost and latency | Up to 3 parallel initial steps plus 2 complementary queries in one phase; max 10 retrieval attempts for live structured queries, 8 otherwise; max 2 model calls; capped sources and model output | Track tokens, actual cost, provider quotas and p95 latency; cap total request duration |
 | Malformed output | Validate expected object/row shapes; error categories; safe fallback | Stronger provider schemas and contract integration tests |
 | Weak results | Lexical relevance and domain-specific anchors, URL deduplication, domain diversity | Semantic relevance, source authority scoring, publication date, entity coverage and independent corroboration |
 | Hallucination | Exact source ID/span validation; abstain without evidence | A real source can still be false, stale or out of context; exact matching is not entailment |
