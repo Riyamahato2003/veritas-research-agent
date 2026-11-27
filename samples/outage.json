@@ -155,7 +155,7 @@
   "metrics": {
     "tool_attempts": 8,
     "model_calls": 0,
-    "elapsed_ms": 312,
+    "elapsed_ms": 307,
     "citation_integrity": true,
     "evidence_retained": 0,
     "model_selected": 0,

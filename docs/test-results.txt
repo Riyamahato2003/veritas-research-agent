@@ -34,6 +34,7 @@ test_nonoverlapping_numbered_rubric (test_prototype_reporting.PrototypeReporting
 test_partial_linked_claims_survive_provider_failure (test_prototype_reporting.PrototypeReportingTests.test_partial_linked_claims_survive_provider_failure) ... ok
 test_review_rejects_extra_assertion (test_prototype_reporting.PrototypeReportingTests.test_review_rejects_extra_assertion) ... ok
 test_reviewer_corrects_valid_facet_only (test_prototype_reporting.PrototypeReportingTests.test_reviewer_corrects_valid_facet_only) ... ok
+test_candidate_claim_rejects_feature_owned_by_another_entity (test_research_v2.V2Tests.test_candidate_claim_rejects_feature_owned_by_another_entity) ... ok
 test_candidate_claim_rejects_passage_without_entity_attribution (test_research_v2.V2Tests.test_candidate_claim_rejects_passage_without_entity_attribution) ... ok
 test_end_to_end_coverage_recovery (test_research_v2.V2Tests.test_end_to_end_coverage_recovery) ... ok
 test_frozen_copy_mismatch_vs_passage_id (test_research_v2.V2Tests.test_frozen_copy_mismatch_vs_passage_id) ... ok
@@ -67,6 +68,6 @@ test_public_live_with_tavily (test_web.WebTests.test_public_live_with_tavily) ..
 test_validation (test_web.WebTests.test_validation) ... ok
 
 ----------------------------------------------------------------------
-Ran 67 tests in 1.599s
+Ran 68 tests in 1.594s
 
 OK

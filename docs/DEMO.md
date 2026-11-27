@@ -22,7 +22,7 @@ Switch to Demo mode, choose the total outage simulation, and run a vector-databa
 
 ### 3:10–4:00 — Evaluation and limits
 
-Open Evaluation and show the 67 regression tests and 11 offline scenario checks (update counts if they change). Point to the evaluation report for live runs and known failures. Close by noting that the current live sample still shows incomplete research; more human-reviewed evidence and repeated live evaluations are needed before relying on answers.
+Open Evaluation and show the 68 regression tests and 11 offline scenario checks (update counts if they change). Point to the evaluation report for live runs and known failures. Close by noting that the live sample shows incomplete research; more human-reviewed evidence and repeated live evaluations are needed before relying on answers.
 
 ## Recording checklist
 
