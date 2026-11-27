@@ -1,20 +1,128 @@
 [
-{"tool":"github","tags":"vector database databases rag open source qdrant milvus weaviate","title":"Qdrant","url":"https://github.com/qdrant/qdrant","text":"Qdrant is a vector similarity search engine with filtering over associated payload metadata. It is implemented in Rust."},
-{"tool":"github","tags":"vector database databases rag open source milvus qdrant weaviate","title":"Milvus","url":"https://github.com/milvus-io/milvus","text":"Milvus is an open-source vector database designed for scalable similarity search. Distributed operation adds infrastructure and operational considerations."},
-{"tool":"github","tags":"vector database databases rag open source weaviate qdrant milvus","title":"Weaviate","url":"https://github.com/weaviate/weaviate","text":"Weaviate is a vector database that supports vector search and hybrid search combining keyword and vector retrieval."},
-{"tool":"wiki","tags":"vector database databases rag embeddings search","title":"Vector database","url":"https://en.wikipedia.org/wiki/Vector_database","text":"A vector database stores vectors and supports similarity searches. Approximate nearest-neighbor indexing trades exactness for retrieval speed."},
-{"tool":"web","tags":"vector database databases rag qdrant","title":"Qdrant documentation","url":"https://qdrant.tech/documentation/","text":"Qdrant documentation describes vector search, payload filtering and deployment options. Benchmarking with the intended workload is necessary before choosing a database."},
-{"tool":"web","tags":"vector database databases rag milvus","title":"Milvus documentation","url":"https://milvus.io/docs/overview.md","text":"Milvus documentation describes standalone and distributed deployment options for vector search workloads."},
-{"tool":"web","tags":"vector database databases rag weaviate","title":"Weaviate documentation","url":"https://docs.weaviate.io/weaviate","text":"Weaviate documentation describes hybrid search, combining keyword and vector search scores."},
-{"tool":"wiki","tags":"multi agent architecture customer support automation multiagent","title":"Multi-agent system","url":"https://en.wikipedia.org/wiki/Multi-agent_system","text":"A multi-agent system consists of interacting agents. Coordination among agents adds communication and decision complexity."},
-{"tool":"web","tags":"multi agent architecture customer support automation agents","title":"Building effective agents","url":"https://www.anthropic.com/research/building-effective-agents","text":"Agent workflows can use routing, parallelization and orchestrator-worker patterns. Greater autonomy and more model calls may increase cost and latency."},
-{"tool":"github","tags":"multi agent architecture customer support automation agents","title":"Microsoft AutoGen","url":"https://github.com/microsoft/autogen","text":"AutoGen is a framework for building multi-agent AI applications."},
-{"tool":"wiki","tags":"memory ai support agent retrieval rag context","title":"Retrieval-augmented generation","url":"https://en.wikipedia.org/wiki/Retrieval-augmented_generation","text":"Retrieval-augmented generation retrieves external information to provide context for a language model response."},
-{"tool":"web","tags":"memory ai support agent context conversation","title":"LangGraph memory overview","url":"https://docs.langchain.com/oss/python/langgraph/memory","text":"Agent memory can include short-term thread state and long-term information across sessions. Persistence requires deliberate storage and retrieval policies."},
-{"tool":"github","tags":"memory ai support agent context conversation","title":"LangGraph","url":"https://github.com/langchain-ai/langgraph","text":"LangGraph supports stateful agent workflows and persistence through checkpointing."},
-{"tool":"web","tags":"indian india b2b saas hr tech startups hrtech hrms positioning","title":"Keka","url":"https://www.keka.com/","text":"Keka markets HR, payroll and workforce management software."},
-{"tool":"web","tags":"indian india b2b saas hr tech startups hrtech hrms positioning","title":"Darwinbox","url":"https://darwinbox.com/","text":"Darwinbox markets a human capital management platform for enterprise HR operations."},
-{"tool":"web","tags":"indian india b2b saas hr tech startups hrtech hrms positioning","title":"greytHR","url":"https://www.greythr.com/","text":"greytHR markets payroll and HR management software."},
-{"tool":"web","tags":"indian india b2b saas hr tech startups hrtech hrms positioning","title":"ZingHR","url":"https://www.zinghr.com/","text":"ZingHR markets a cloud-based human capital management platform."},
-{"tool":"web","tags":"indian india b2b saas hr tech startups hrtech hrms positioning","title":"PeopleStrong","url":"https://www.peoplestrong.com/","text":"PeopleStrong markets enterprise HR technology covering talent and workforce management."}
+  {
+    "tool": "github",
+    "tags": "vector database databases rag open source qdrant milvus weaviate",
+    "title": "Qdrant",
+    "url": "https://github.com/qdrant/qdrant",
+    "text": "Qdrant is a vector similarity search engine with filtering over associated payload metadata. It is implemented in Rust."
+  },
+  {
+    "tool": "github",
+    "tags": "vector database databases rag open source milvus qdrant weaviate",
+    "title": "Milvus",
+    "url": "https://github.com/milvus-io/milvus",
+    "text": "Milvus is an open-source vector database designed for scalable similarity search. Distributed operation adds infrastructure and operational considerations."
+  },
+  {
+    "tool": "github",
+    "tags": "vector database databases rag open source weaviate qdrant milvus",
+    "title": "Weaviate",
+    "url": "https://github.com/weaviate/weaviate",
+    "text": "Weaviate is a vector database that supports vector search and hybrid search combining keyword and vector retrieval."
+  },
+  {
+    "tool": "wiki",
+    "tags": "vector database databases rag embeddings search",
+    "title": "Vector database",
+    "url": "https://en.wikipedia.org/wiki/Vector_database",
+    "text": "A vector database stores vectors and supports similarity searches. Approximate nearest-neighbor indexing trades exactness for retrieval speed."
+  },
+  {
+    "tool": "web",
+    "tags": "vector database databases rag qdrant",
+    "title": "Qdrant documentation",
+    "url": "https://qdrant.tech/documentation/",
+    "text": "Qdrant documentation describes vector search, payload filtering and deployment options. Benchmarking with the intended workload is necessary before choosing a database."
+  },
+  {
+    "tool": "web",
+    "tags": "vector database databases rag milvus",
+    "title": "Milvus documentation",
+    "url": "https://milvus.io/docs/overview.md",
+    "text": "Milvus documentation describes standalone and distributed deployment options for vector search workloads."
+  },
+  {
+    "tool": "web",
+    "tags": "vector database databases rag weaviate",
+    "title": "Weaviate documentation",
+    "url": "https://docs.weaviate.io/weaviate",
+    "text": "Weaviate documentation describes hybrid search, combining keyword and vector search scores."
+  },
+  {
+    "tool": "wiki",
+    "tags": "multi agent architecture customer support automation multiagent",
+    "title": "Multi-agent system",
+    "url": "https://en.wikipedia.org/wiki/Multi-agent_system",
+    "text": "A multi-agent system consists of interacting agents. Coordination among agents adds communication and decision complexity."
+  },
+  {
+    "tool": "web",
+    "tags": "multi agent architecture customer support automation agents",
+    "title": "Building effective agents",
+    "url": "https://www.anthropic.com/research/building-effective-agents",
+    "text": "Multi-agent workflows can use routing, parallelization and orchestrator-worker patterns. Greater autonomy and more model calls may increase cost and latency."
+  },
+  {
+    "tool": "github",
+    "tags": "multi agent architecture customer support automation agents",
+    "title": "Microsoft AutoGen",
+    "url": "https://github.com/microsoft/autogen",
+    "text": "AutoGen is a framework for building multi-agent AI applications."
+  },
+  {
+    "tool": "wiki",
+    "tags": "memory ai support agent retrieval rag context",
+    "title": "Retrieval-augmented generation",
+    "url": "https://en.wikipedia.org/wiki/Retrieval-augmented_generation",
+    "text": "Retrieval-augmented generation retrieves external information to provide context for a language model response. External retrieval is one approach to agent memory."
+  },
+  {
+    "tool": "web",
+    "tags": "memory ai support agent context conversation",
+    "title": "LangGraph memory overview",
+    "url": "https://docs.langchain.com/oss/python/langgraph/memory",
+    "text": "Agent memory can include short-term thread state and long-term information across sessions. Persistence requires deliberate storage and retrieval policies."
+  },
+  {
+    "tool": "github",
+    "tags": "memory ai support agent context conversation",
+    "title": "LangGraph",
+    "url": "https://github.com/langchain-ai/langgraph",
+    "text": "LangGraph supports stateful agent workflows and memory persistence through checkpointing."
+  },
+  {
+    "tool": "web",
+    "tags": "indian india b2b saas hr tech startups hrtech hrms positioning",
+    "title": "Keka",
+    "url": "https://www.keka.com/",
+    "text": "Keka markets HR, payroll and workforce management software."
+  },
+  {
+    "tool": "web",
+    "tags": "indian india b2b saas hr tech startups hrtech hrms positioning",
+    "title": "Darwinbox",
+    "url": "https://darwinbox.com/",
+    "text": "Darwinbox markets a human capital management platform for enterprise HR operations."
+  },
+  {
+    "tool": "web",
+    "tags": "indian india b2b saas hr tech startups hrtech hrms positioning",
+    "title": "greytHR",
+    "url": "https://www.greythr.com/",
+    "text": "greytHR markets payroll and HR management software."
+  },
+  {
+    "tool": "web",
+    "tags": "indian india b2b saas hr tech startups hrtech hrms positioning",
+    "title": "ZingHR",
+    "url": "https://www.zinghr.com/",
+    "text": "ZingHR markets cloud-based HR and human capital management software."
+  },
+  {
+    "tool": "web",
+    "tags": "indian india b2b saas hr tech startups hrtech hrms positioning",
+    "title": "PeopleStrong",
+    "url": "https://www.peoplestrong.com/",
+    "text": "PeopleStrong markets enterprise HR technology covering talent and workforce management."
+  }
 ]

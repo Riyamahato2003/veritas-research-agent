@@ -1,0 +1,26 @@
+[
+  {
+    "fault": "none",
+    "single_tool_usable_records": 3,
+    "agent_used_records": 6,
+    "single_tool_attempts": 1,
+    "agent_attempts": 3,
+    "agent_status": "partial"
+  },
+  {
+    "fault": "timeout",
+    "single_tool_usable_records": 0,
+    "agent_used_records": 4,
+    "single_tool_attempts": 1,
+    "agent_attempts": 4,
+    "agent_status": "partial"
+  },
+  {
+    "fault": "outage",
+    "single_tool_usable_records": 0,
+    "agent_used_records": 0,
+    "single_tool_attempts": 1,
+    "agent_attempts": 8,
+    "agent_status": "insufficient"
+  }
+]

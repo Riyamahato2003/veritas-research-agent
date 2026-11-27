@@ -1,0 +1,147 @@
+{
+  "question": "Compare the top 3 open-source vector databases for a startup building RAG products.",
+  "short_answer": "Insufficient verified evidence to answer this question safely.",
+  "key_findings": [],
+  "sources_used": [],
+  "confidence": "low",
+  "limitations": [
+    "github: simulated_timeout; continued with remaining evidence.",
+    "web: simulated_timeout; continued with remaining evidence.",
+    "wiki: simulated_timeout; continued with remaining evidence.",
+    "github: simulated_timeout; continued with remaining evidence.",
+    "Offline fixture corpus: authored example records, not live page content or current verification.",
+    "Requested ranking or recency cannot be established from snippets alone.",
+    "Fewer than two usable sources; cannot establish a robust answer.",
+    "Requested result count exceeds usable evidence count; coverage is incomplete."
+  ],
+  "assumptions": [
+    "Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability."
+  ],
+  "suggested_next_steps": [
+    "Rephrase with specific entities or restore research providers, then retry."
+  ],
+  "status": "insufficient",
+  "mode": "demo",
+  "plan": [
+    {
+      "tool": "github",
+      "query": "vector database",
+      "reason": "Public implementation and repository descriptions"
+    },
+    {
+      "tool": "web",
+      "query": "vector database",
+      "reason": "Broad discovery and official product positioning"
+    },
+    {
+      "tool": "wiki",
+      "query": "vector database",
+      "reason": "Background and conceptual context"
+    },
+    {
+      "tool": "github",
+      "query": "databases open products rag source vector",
+      "reason": "Recovery: broaden search after insufficient evidence"
+    }
+  ],
+  "trace": [
+    {
+      "stage": "plan",
+      "status": "ok",
+      "steps": 3
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 1,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 2,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "web",
+      "attempt": 1,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "web",
+      "attempt": 2,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "wiki",
+      "attempt": 1,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "wiki",
+      "attempt": 2,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "replan",
+      "status": "triggered",
+      "reason": "unique evidence count below target"
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 1,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 2,
+      "status": "error",
+      "error": "simulated_timeout",
+      "ms": 0
+    },
+    {
+      "stage": "filter",
+      "status": "ok",
+      "candidates": 0,
+      "unique": 0,
+      "retained": 0
+    },
+    {
+      "stage": "synthesis",
+      "status": "not_requested",
+      "findings": 0
+    },
+    {
+      "stage": "verify",
+      "status": "ok",
+      "linked_findings": 0,
+      "confidence": "low"
+    }
+  ],
+  "metrics": {
+    "tool_attempts": 8,
+    "model_calls": 0,
+    "elapsed_ms": 304,
+    "citation_integrity": true
+  }
+}

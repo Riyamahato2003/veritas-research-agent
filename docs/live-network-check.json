@@ -1,0 +1,123 @@
+{
+  "question": "Compare vector databases for RAG",
+  "short_answer": "Insufficient verified evidence to answer this question safely.",
+  "key_findings": [],
+  "sources_used": [],
+  "confidence": "low",
+  "limitations": [
+    "github: network_error; continued with remaining evidence.",
+    "wiki: network_error; continued with remaining evidence.",
+    "github: network_error; continued with remaining evidence.",
+    "Fewer than two usable sources; cannot establish a robust answer.",
+    "Broad web search disabled; configure BRAVE_API_KEY for general research."
+  ],
+  "assumptions": [
+    "Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability."
+  ],
+  "suggested_next_steps": [
+    "Rephrase with specific entities or restore research providers, then retry."
+  ],
+  "status": "insufficient",
+  "mode": "live",
+  "plan": [
+    {
+      "tool": "github",
+      "query": "vector database",
+      "reason": "Public implementation and repository descriptions"
+    },
+    {
+      "tool": "wiki",
+      "query": "vector database",
+      "reason": "Background and conceptual context"
+    },
+    {
+      "tool": "github",
+      "query": "databases rag vector",
+      "reason": "Recovery: broaden search after insufficient evidence"
+    }
+  ],
+  "trace": [
+    {
+      "stage": "plan",
+      "status": "ok",
+      "steps": 2
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 1,
+      "status": "error",
+      "error": "network_error",
+      "ms": 4
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 2,
+      "status": "error",
+      "error": "network_error",
+      "ms": 5006
+    },
+    {
+      "stage": "retrieve",
+      "tool": "wiki",
+      "attempt": 1,
+      "status": "error",
+      "error": "network_error",
+      "ms": 5007
+    },
+    {
+      "stage": "retrieve",
+      "tool": "wiki",
+      "attempt": 2,
+      "status": "error",
+      "error": "network_error",
+      "ms": 1
+    },
+    {
+      "stage": "replan",
+      "status": "triggered",
+      "reason": "unique evidence count below target"
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 1,
+      "status": "error",
+      "error": "network_error",
+      "ms": 5006
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 2,
+      "status": "error",
+      "error": "network_error",
+      "ms": 1
+    },
+    {
+      "stage": "filter",
+      "status": "ok",
+      "candidates": 0,
+      "unique": 0,
+      "retained": 0
+    },
+    {
+      "stage": "synthesis",
+      "status": "not_requested",
+      "findings": 0
+    },
+    {
+      "stage": "verify",
+      "status": "ok",
+      "linked_findings": 0,
+      "confidence": "low"
+    }
+  ],
+  "metrics": {
+    "tool_attempts": 6,
+    "model_calls": 0,
+    "elapsed_ms": 10322,
+    "citation_integrity": true
+  }
+}

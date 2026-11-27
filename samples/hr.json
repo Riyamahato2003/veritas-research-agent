@@ -1,0 +1,152 @@
+{
+  "question": "Find 5 Indian B2B SaaS startups in HR tech and summarize their positioning.",
+  "short_answer": "Keka markets HR, payroll and workforce management software. [S1] Darwinbox markets a human capital management platform for enterprise HR operations. [S2] greytHR markets payroll and HR management software. [S3]",
+  "key_findings": [
+    {
+      "statement": "Keka markets HR, payroll and workforce management software.",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "statement": "Darwinbox markets a human capital management platform for enterprise HR operations.",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "statement": "greytHR markets payroll and HR management software.",
+      "source_ids": [
+        "S3"
+      ]
+    },
+    {
+      "statement": "ZingHR markets cloud-based HR and human capital management software.",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
+      "statement": "PeopleStrong markets enterprise HR technology covering talent and workforce management.",
+      "source_ids": [
+        "S5"
+      ]
+    }
+  ],
+  "sources_used": [
+    {
+      "title": "Keka",
+      "url": "https://www.keka.com/",
+      "text": "Keka markets HR, payroll and workforce management software.",
+      "tool": "web",
+      "score": 0.175,
+      "id": "S1"
+    },
+    {
+      "title": "Darwinbox",
+      "url": "https://darwinbox.com/",
+      "text": "Darwinbox markets a human capital management platform for enterprise HR operations.",
+      "tool": "web",
+      "score": 0.175,
+      "id": "S2"
+    },
+    {
+      "title": "greytHR",
+      "url": "https://www.greythr.com/",
+      "text": "greytHR markets payroll and HR management software.",
+      "tool": "web",
+      "score": 0.175,
+      "id": "S3"
+    },
+    {
+      "title": "ZingHR",
+      "url": "https://www.zinghr.com/",
+      "text": "ZingHR markets cloud-based HR and human capital management software.",
+      "tool": "web",
+      "score": 0.175,
+      "id": "S4"
+    },
+    {
+      "title": "PeopleStrong",
+      "url": "https://www.peoplestrong.com/",
+      "text": "PeopleStrong markets enterprise HR technology covering talent and workforce management.",
+      "tool": "web",
+      "score": 0.175,
+      "id": "S5"
+    }
+  ],
+  "confidence": "medium",
+  "limitations": [
+    "Offline fixture corpus: authored example records, not live page content or current verification.",
+    "Exact evidence matching is not semantic entailment, source accuracy, or exhaustive coverage; rankings and freshness are unverified."
+  ],
+  "assumptions": [
+    "Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability."
+  ],
+  "suggested_next_steps": [
+    "Verify primary sources and compare evidence against the intended decision criteria."
+  ],
+  "status": "complete",
+  "mode": "demo",
+  "plan": [
+    {
+      "tool": "web",
+      "query": "Indian HR tech SaaS",
+      "reason": "Broad discovery and official product positioning"
+    },
+    {
+      "tool": "wiki",
+      "query": "Indian HR tech SaaS",
+      "reason": "Background and conceptual context"
+    }
+  ],
+  "trace": [
+    {
+      "stage": "plan",
+      "status": "ok",
+      "steps": 2
+    },
+    {
+      "stage": "retrieve",
+      "tool": "web",
+      "attempt": 1,
+      "status": "ok",
+      "accepted": 5,
+      "rejected": [],
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "wiki",
+      "attempt": 1,
+      "status": "ok",
+      "accepted": 0,
+      "rejected": [],
+      "ms": 0
+    },
+    {
+      "stage": "filter",
+      "status": "ok",
+      "candidates": 5,
+      "unique": 5,
+      "retained": 5
+    },
+    {
+      "stage": "synthesis",
+      "status": "not_requested",
+      "findings": 5
+    },
+    {
+      "stage": "verify",
+      "status": "ok",
+      "linked_findings": 5,
+      "confidence": "medium"
+    }
+  ],
+  "metrics": {
+    "tool_attempts": 2,
+    "model_calls": 0,
+    "elapsed_ms": 2,
+    "citation_integrity": true
+  }
+}

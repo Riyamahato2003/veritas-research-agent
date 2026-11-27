@@ -1,0 +1,28 @@
+test_architecture (test_agent.AgentTests.test_architecture) ... ok
+test_bad_citation (test_agent.AgentTests.test_bad_citation) ... ok
+test_bad_input (test_agent.AgentTests.test_bad_input) ... ok
+test_bound (test_agent.AgentTests.test_bound) ... ok
+test_business_routes (test_agent.AgentTests.test_business_routes) ... ok
+test_duplicate (test_agent.AgentTests.test_duplicate) ... ok
+test_injection (test_agent.AgentTests.test_injection) ... ok
+test_invalid_url (test_agent.AgentTests.test_invalid_url) ... ok
+test_live_adapter_mock_model_reject (test_agent.AgentTests.test_live_adapter_mock_model_reject) ... ok
+test_live_adapter_mock_model_success (test_agent.AgentTests.test_live_adapter_mock_model_success) ... ok
+test_live_no_fixture_fallback (test_agent.AgentTests.test_live_no_fixture_fallback) ... ok
+test_malformed (test_agent.AgentTests.test_malformed) ... ok
+test_memory (test_agent.AgentTests.test_memory) ... ok
+test_noise (test_agent.AgentTests.test_noise) ... ok
+test_outage (test_agent.AgentTests.test_outage) ... ok
+test_timeout (test_agent.AgentTests.test_timeout) ... ok
+test_transient (test_agent.AgentTests.test_transient) ... ok
+test_unknown (test_agent.AgentTests.test_unknown) ... ok
+test_vector_grounding (test_agent.AgentTests.test_vector_grounding) ... ok
+test_brave_schema (test_tools.AdapterTests.test_brave_schema) ... ok
+test_github_bad_schema (test_tools.AdapterTests.test_github_bad_schema) ... ok
+test_github_schema (test_tools.AdapterTests.test_github_schema) ... ok
+test_wiki_schema (test_tools.AdapterTests.test_wiki_schema) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 1.247s
+
+OK

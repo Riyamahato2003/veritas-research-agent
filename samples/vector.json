@@ -1,0 +1,181 @@
+{
+  "question": "Compare the top 3 open-source vector databases for a startup building RAG products.",
+  "short_answer": "Milvus is an open-source vector database designed for scalable similarity search. Distributed operation adds infrastructure and operational considerations. [S1] Qdrant documentation describes vector search, payload filtering and deployment options. Benchmarking with the intended workload is necessary before choosing a database. [S2] A vector database stores vectors and supports similarity searches. Approximate nearest-neighbor indexing trades exactness for retrieval speed. [S3]",
+  "key_findings": [
+    {
+      "statement": "Milvus is an open-source vector database designed for scalable similarity search. Distributed operation adds infrastructure and operational considerations.",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "statement": "Qdrant documentation describes vector search, payload filtering and deployment options. Benchmarking with the intended workload is necessary before choosing a database.",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "statement": "A vector database stores vectors and supports similarity searches. Approximate nearest-neighbor indexing trades exactness for retrieval speed.",
+      "source_ids": [
+        "S3"
+      ]
+    },
+    {
+      "statement": "Milvus documentation describes standalone and distributed deployment options for vector search workloads.",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
+      "statement": "Weaviate documentation describes hybrid search, combining keyword and vector search scores.",
+      "source_ids": [
+        "S5"
+      ]
+    },
+    {
+      "statement": "Weaviate is a vector database that supports vector search and hybrid search combining keyword and vector retrieval.",
+      "source_ids": [
+        "S6"
+      ]
+    }
+  ],
+  "sources_used": [
+    {
+      "title": "Milvus",
+      "url": "https://github.com/milvus-io/milvus",
+      "text": "Milvus is an open-source vector database designed for scalable similarity search. Distributed operation adds infrastructure and operational considerations.",
+      "tool": "github",
+      "score": 0.65,
+      "id": "S1"
+    },
+    {
+      "title": "Qdrant documentation",
+      "url": "https://qdrant.tech/documentation/",
+      "text": "Qdrant documentation describes vector search, payload filtering and deployment options. Benchmarking with the intended workload is necessary before choosing a database.",
+      "tool": "web",
+      "score": 0.417,
+      "id": "S2"
+    },
+    {
+      "title": "Vector database",
+      "url": "https://en.wikipedia.org/wiki/Vector_database",
+      "text": "A vector database stores vectors and supports similarity searches. Approximate nearest-neighbor indexing trades exactness for retrieval speed.",
+      "tool": "wiki",
+      "score": 0.417,
+      "id": "S3"
+    },
+    {
+      "title": "Milvus documentation",
+      "url": "https://milvus.io/docs/overview.md",
+      "text": "Milvus documentation describes standalone and distributed deployment options for vector search workloads.",
+      "tool": "web",
+      "score": 0.267,
+      "id": "S4"
+    },
+    {
+      "title": "Weaviate documentation",
+      "url": "https://docs.weaviate.io/weaviate",
+      "text": "Weaviate documentation describes hybrid search, combining keyword and vector search scores.",
+      "tool": "web",
+      "score": 0.267,
+      "id": "S5"
+    },
+    {
+      "title": "Weaviate",
+      "url": "https://github.com/weaviate/weaviate",
+      "text": "Weaviate is a vector database that supports vector search and hybrid search combining keyword and vector retrieval.",
+      "tool": "github",
+      "score": 0.417,
+      "id": "S6"
+    }
+  ],
+  "confidence": "medium",
+  "limitations": [
+    "Offline fixture corpus: authored example records, not live page content or current verification.",
+    "Exact evidence matching is not semantic entailment, source accuracy, or exhaustive coverage; rankings and freshness are unverified.",
+    "Requested ranking or recency cannot be established from snippets alone."
+  ],
+  "assumptions": [
+    "Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability."
+  ],
+  "suggested_next_steps": [
+    "Verify primary sources and compare evidence against the intended decision criteria."
+  ],
+  "status": "partial",
+  "mode": "demo",
+  "plan": [
+    {
+      "tool": "github",
+      "query": "vector database",
+      "reason": "Public implementation and repository descriptions"
+    },
+    {
+      "tool": "web",
+      "query": "vector database",
+      "reason": "Broad discovery and official product positioning"
+    },
+    {
+      "tool": "wiki",
+      "query": "vector database",
+      "reason": "Background and conceptual context"
+    }
+  ],
+  "trace": [
+    {
+      "stage": "plan",
+      "status": "ok",
+      "steps": 3
+    },
+    {
+      "stage": "retrieve",
+      "tool": "github",
+      "attempt": 1,
+      "status": "ok",
+      "accepted": 3,
+      "rejected": [],
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "web",
+      "attempt": 1,
+      "status": "ok",
+      "accepted": 3,
+      "rejected": [],
+      "ms": 0
+    },
+    {
+      "stage": "retrieve",
+      "tool": "wiki",
+      "attempt": 1,
+      "status": "ok",
+      "accepted": 1,
+      "rejected": [],
+      "ms": 0
+    },
+    {
+      "stage": "filter",
+      "status": "ok",
+      "candidates": 7,
+      "unique": 7,
+      "retained": 7
+    },
+    {
+      "stage": "synthesis",
+      "status": "not_requested",
+      "findings": 6
+    },
+    {
+      "stage": "verify",
+      "status": "ok",
+      "linked_findings": 6,
+      "confidence": "medium"
+    }
+  ],
+  "metrics": {
+    "tool_attempts": 3,
+    "model_calls": 0,
+    "elapsed_ms": 5,
+    "citation_integrity": true
+  }
+}

@@ -18,6 +18,7 @@ def normalize(rows, tool, question, search):
     if not isinstance(rows,list): raise ToolError('malformed_schema')
     accepted=[]; rejected=[]
     qt=terms(question); st=terms(search)
+    anchors = ({'memory'} if 'memory' in st else {'multi','multiagent'} if 'multi' in st else {'vector'} if 'vector' in st else {'hr','hrtech','hrms'} if 'hr' in st else set())
     for row in rows[:8]:
         if not isinstance(row,dict) or any(not isinstance(row.get(k),str) for k in ('title','url','text')):
             rejected.append('malformed_row'); continue
@@ -31,7 +32,7 @@ def normalize(rows, tool, question, search):
             rejected.append('invalid_url'); continue
         if INJECTION.search(title+' '+text): rejected.append('suspected_injection'); continue
         overlap=terms(title+' '+text) & qt; search_overlap=terms(title+' '+text) & st
-        if len(text)<25 or not overlap or not search_overlap:
+        if len(text)<25 or not overlap or not search_overlap or (anchors and not anchors & terms(title+' '+text)):
             rejected.append('weak_relevance'); continue
         score=round(.7*len(overlap)/max(1,len(qt))+.3*len(search_overlap)/max(1,len(st)),3)
         accepted.append(Evidence(title,url,text,tool,score))
@@ -49,7 +50,7 @@ def verified_findings(proposal,evidence):
     return found
 
 def extractive(evidence):
-    return [Finding(e.text[:600].rsplit(' ',1)[0]+'…' if len(e.text)>600 else e.text,[e.id]) for e in evidence[:6]]
+    return [Finding(e.text[:600].rsplit(' ',1)[0] if len(e.text)>600 else e.text,[e.id]) for e in evidence[:6]]
 
 def run(question, mode='demo', fault='none', use_model=True, adapters=None, model_select=select):
     if not isinstance(question,str) or not 3<=len(question.strip())<=600: raise ValueError('Question must be 3–600 characters.')
@@ -91,10 +92,12 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
         return out
     candidates=gather(steps)
     # One conditional recovery step; no open-ended autonomous loop.
-    if len({e.url for e in candidates})<2:
+    requested = re.search(r'\b(?:find|list|compare|top)\s+(\d{1,2})\b',question,re.I)
+    target = min(8,int(requested.group(1))) if requested else 2
+    if len({e.url for e in candidates})<max(2,target):
         untried=sorted(available-{s.tool for s in steps})
         recovery=Step(untried[0] if untried else steps[0].tool,' '.join(sorted(terms(question)))[:180] or question[:180],'Recovery: broaden search after insufficient evidence')
-        steps.append(recovery); trace.append({'stage':'replan','status':'triggered','reason':'fewer than two unique results'})
+        steps.append(recovery); trace.append({'stage':'replan','status':'triggered','reason':'unique evidence count below target'})
         candidates+=gather([recovery])
     unique={}
     for e in sorted(candidates,key=lambda x:-x.score):
@@ -132,7 +135,10 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     if re.search(r'\b(top|best|latest|current|today|2026)\b',question,re.I):
         limits.append('Requested ranking or recency cannot be established from snippets alone.'); status='partial' if findings else status
     if len(sources)<2: limits.append('Fewer than two usable sources; cannot establish a robust answer.')
-    if mode=='live' and 'web' not in available: limits.append('Broad web search disabled; configure BRAVE_API_KEY for general research.'); status='partial' if findings else status
-    short=' '.join(f'{f.statement} [{f.source_ids[0]}]' for f in findings[:2]) if findings else 'Insufficient verified evidence to answer this question safely.'
+    if requested and len(sources)<int(requested.group(1)):
+        limits.append('Requested result count exceeds usable evidence count; coverage is incomplete.'); status='partial' if findings else status; confidence='low'
+    if mode=='live' and 'web' not in available: limits.append('Broad web search disabled; configure BRAVE_API_KEY for general research.'); status='partial' if findings else status; confidence='low'
+    if status=='partial' and len(sources)<2: confidence='low'
+    short=' '.join(f'{f.statement} [{f.source_ids[0]}]' for f in findings[:3]) if findings else 'Insufficient verified evidence to answer this question safely.'
     trace.append({'stage':'verify','status':'ok','linked_findings':len(findings),'confidence':confidence})
     return Report(question,short,findings,sources,confidence,limits,['Sources are untrusted retrieval records; confidence is a heuristic, not a calibrated probability.'],['Verify primary sources and compare evidence against the intended decision criteria.' if findings else 'Rephrase with specific entities or restore research providers, then retry.'],status,mode,steps,trace,{'tool_attempts':calls,'model_calls':model_calls,'elapsed_ms':round((time.monotonic()-start)*1000),'citation_integrity':all(s in {e.id for e in sources} for f in findings for s in f.source_ids)})
