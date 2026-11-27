@@ -77,6 +77,11 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
     if not isinstance(question,str) or not 3<=len(question.strip())<=600: raise ValueError('Question must be 3–600 characters.')
     if mode not in ('demo','live'): raise ValueError('Invalid mode')
     if fault!='none' and mode!='demo': raise ValueError('Fault injection is demo-only')
+    # Public live and CLI use the passage-indexed engine. Legacy injected
+    # adapters/model selectors retain their original contract for frozen CP15 tests.
+    if mode=='live' and adapters is None and model_select is select and model_verify is verify:
+        from .research_v2 import run_live
+        return run_live(question,use_model,include_diagnostics)
     question=question.strip(); start=time.monotonic(); trace=[]; limits=[]; calls=0; model_calls=0
     def error_category(exc):
         return exc.kind if isinstance(exc,ToolError) else 'internal_'+type(exc).__name__

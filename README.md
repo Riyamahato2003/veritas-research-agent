@@ -53,14 +53,14 @@ flowchart TD
 
 **Tools:** GitHub search for repository descriptions; Wikipedia for background and concepts; Tavily Search for broader research and official positioning. Business questions prefer web search, technical questions include repository search, and general questions prefer background/broad discovery. Routing uses keywords and a small set of domain-specific anchors; unfamiliar or multilingual questions can be misrouted.
 
-**Data flow:** `Step`, `Evidence`, `Finding`, and `Report` dataclasses define the output contract. `planner.py` proposes up to three initial steps. `agent.py` executes them concurrently, normalizes rows, rejects malformed entries, invalid URL schemes/hosts, obvious injection phrases, and weak lexical matches, then deduplicates by normalized URL and ranks using relevance and domain diversity. Live list/comparison questions use up to two complementary web searches in one bounded follow-up phase; there are no predefined candidate lists in the active research path. The model proposes structured sections and atomic claims with exact quotes; deterministic validation rejects fabricated spans, cross-entity names, and noisy fragments. A separate Groq review receives proposed claims and exact supporting passages; missing, malformed, or rejected verdicts withhold paraphrased claims. Coverage counts reviewed distinct labels or benefit/risk categories, not URLs. Exact passages remain available on failure. The reviewer is the same provider/model by default, so its judgments are not independent truth or formal entailment verification.
+**Live data flow (CP17–23):** `research_v2.py` decomposes intent into bounded requirements, retrieves complementary evidence, selectively extracts up to three discovered pages through Tavily, and indexes preserved passages in `grounding.py`. Models return immutable passage IDs rather than reproducing quotes. A separate reviewer validates atomic claims against one or more passages. Coverage counts candidates only when all required facets are reviewed; missing requirements drive one bounded recovery phase. `telemetry.py` provides correlated per-run trace, timing, error codes, tokens, estimated credits and privacy-minimized Vercel log summaries. Offline demo retains its original deterministic fixture and retry engine; legacy injected CP15 tests retain their historical contract. See `docs/RESEARCH_V2.md` for budgets and limitations.
 
 ## Reliability, security and tradeoffs
 
 | Concern | Implemented decision | Remaining gap |
 |---|---|---|
 | Timeouts and retries | 4-second socket timeout per retrieval attempt; max two attempts; retry transient HTTP/network failures; 150 ms fixed delay | Not a strict wall-clock deadline; use cancellable clients, exponential backoff/jitter, Retry-After and circuit breakers |
-| Cost and latency | Up to 3 parallel initial steps plus 2 complementary queries in one phase; max 10 retrieval attempts for live structured queries, 8 otherwise; max 2 model calls; capped sources and model output | Track tokens, actual cost, provider quotas and p95 latency; cap total request duration |
+| Cost and latency | Live: at most 5 basic web searches, one extraction batch, 5 model calls, 48-second soft budget; demo: max 8 retrieval attempts; capped sources and model output | Track tokens, actual cost, provider quotas and p95 latency; cap total request duration |
 | Malformed output | Validate expected object/row shapes; error categories; safe fallback | Stronger provider schemas and contract integration tests |
 | Weak results | Lexical relevance and domain-specific anchors, URL deduplication, domain diversity | Semantic relevance, source authority scoring, publication date, entity coverage and independent corroboration |
 | Hallucination | Exact source ID/span validation; abstain without evidence | A real source can still be false, stale or out of context; exact matching is not entailment |
@@ -100,10 +100,14 @@ Deployment: import this repository into Vercel; the root `vercel.json` configure
 
 | Variable | Purpose |
 |---|---|
-| `GROQ_API_KEY` | Optional model-based evidence span selection |
+| `GROQ_API_KEY` | Optional model-based intent planning, passage-linked synthesis and review |
 | `TAVILY_API_KEY` | Broad live web search via Tavily; recommended |
 | `GROQ_MODEL` | Optional, defaults to `openai/gpt-oss-120b` |
 
 Adding either provider key enables public live research with no access code; add both for broad web search and model-assisted evidence selection. The default open-weight GPT-OSS 120B model is hosted by Groq and uses only GROQ_API_KEY; GROQ_MODEL can override it with another supported JSON-mode model. Keys remain server-side. Per-run limits remain in place, but there is no distributed rate limiting or authentication: configure provider quotas/spend limits and Vercel abuse protections before sharing widely. Demo mode remains available. Historical evaluation metrics are fixture-based, not factual-accuracy claims.
 
 Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs the complete regression suite.
+
+## Production diagnostics
+
+Public live requests expose a per-run `run_id`, stage/error counts, token usage reported by Groq, and a conservative estimated basic Tavily search/extract credit count. Enable **Include retained evidence snapshot** to export evidence text with stable passage IDs. Vercel runtime logs contain only bounded numeric/status summaries, no questions, URLs, prompts or evidence. Provider billing, rate limiting and durable telemetry storage are not implemented. See [research engine and evaluation](docs/RESEARCH_V2.md).

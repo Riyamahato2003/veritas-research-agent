@@ -45,5 +45,7 @@ class Report:
     analysis: list[Finding] = field(default_factory=list)
     comparison: list[dict] = field(default_factory=list)
     sections: list[dict] = field(default_factory=list)
+    research_intent: dict = field(default_factory=dict)
+    coverage_details: dict = field(default_factory=dict)
     def to_dict(self):
         return asdict(self)

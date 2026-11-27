@@ -39,3 +39,7 @@ CP15 regression correction: the first CI run exposed singular/plural mismatches 
 ## CP16 — Observability-only diagnostic audit
 
 An isolated public-endpoint audit reproduced 2/5 HR-tech coverage (15 accepted web rows, 10 retained, two claims reached review; both approved) and 0/2 multi-agent coverage (19 accepted rows, 16 retained, first model call failed). Add bounded per-query retrieval counts, raw proposal/validation rejection reasons, provider error categories, model finish reason/token usage, and opt-in retained evidence snapshots in the response trace. No API keys, raw provider error bodies, or server-side question logging. No change to search or answer-selection policy. Audit workflow: https://github.com/Riyamahato2003/veritas-research-agent/actions/runs/45959543108.
+
+## CP17–23 — Passage-indexed, coverage-driven live engine
+
+New live pipeline with intent decomposition, provider-score ranking, bounded Tavily extraction, immutable passage IDs, explicit per-candidate requirements, missing-coverage recovery, fail-closed claim review, and privacy-minimized correlated run telemetry. The original demo remains unchanged. See `docs/RESEARCH_V2.md`; provider credentials and live acceptance are separate from CI.

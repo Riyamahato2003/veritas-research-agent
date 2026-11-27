@@ -15,6 +15,8 @@ def main():
     for s in r.plan: print(f'  {s.tool}: {s.query} — {s.reason}')
     print('\nSHORT ANSWER\n'+r.short_answer+'\n\nKEY FINDINGS')
     for f in r.key_findings: print(f'  [{", ".join(f.source_ids)}] {f.statement}')
+    if r.research_intent: print('\nREQUIREMENTS '+json.dumps(r.research_intent))
+    if r.coverage_details: print('\nCOVERAGE '+json.dumps(r.coverage_details))
     for section in r.sections:
         print('\n'+section['label']+' ('+section['category']+')')
         for claim in section['claims']: print(f"  [{', '.join(claim['source_ids'])}] {claim['statement']}\n  Evidence: {claim['quote']}")

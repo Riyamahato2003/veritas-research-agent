@@ -7,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from veritas.agent import run
+from veritas.telemetry import log_report, ENGINE
 
 FAULTS = {'none', 'timeout', 'transient', 'outage', 'malformed', 'injection', 'noise'}
 MAX_BODY = 4096
@@ -15,7 +16,7 @@ MAX_BODY = 4096
 def capabilities():
     web = bool(os.getenv('TAVILY_API_KEY'))
     model = bool(os.getenv('GROQ_API_KEY'))
-    return {'demo': True, 'live': web or model,
+    return {'engine_version': ENGINE, 'demo': True, 'live': web or model,
             'access_code_required': False, 'providers': {'github': True, 'wiki': True,
             'web': web, 'model': model}}
 
@@ -42,7 +43,10 @@ def request_report(data):
         return 400, {'error':'include_diagnostics must be a boolean.'}
     try:
         opts={'include_diagnostics':True} if include_diagnostics else {}
-        return 200, run(q, mode, fault, use_model, **opts).to_dict()
+        report=run(q, mode, fault, use_model, **opts)
+        # Existing contract tests mock to_dict; only real reports are logged.
+        if mode=='live' and isinstance(report.metrics,dict): log_report(report)
+        return 200, report.to_dict()
     except ValueError as exc:
         return 400, {'error': str(exc)}
     except Exception:
