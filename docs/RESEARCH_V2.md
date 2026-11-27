@@ -37,3 +37,7 @@ Live inspection first found a Qdrant claim citing a contextless “It indexes…
 
 
 Final CP31 production check: the vector run rejected one feature-owner mismatch and kept confidence low with 6/9 facets; the HR run found five candidates but had no eligibility coverage (5/10 facets). Neither query met its requested coverage. Raw reports and details are in `docs/EVALUATION.md`.
+
+## Final CP32 closeout
+
+List eligibility facets now retain the question's explicit geography/product constraints. The single recovery pass groups missing requirements across candidates within the existing search budget. Candidate claims are deduplicated only after semantic review can correct their requirement IDs. A deterministic parser preserves explicit comma/“and”-separated compare alternatives if model planning omits names; named alternatives with no reviewed evidence are coverage gaps, not a prompt to discover substitutes. Live evaluation still found incomplete HR eligibility, memory attribution and REST evidence; see `docs/EVALUATION.md` and the representative raw reports.

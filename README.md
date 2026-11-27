@@ -28,7 +28,7 @@ export GROQ_MODEL='openai/gpt-oss-120b'     # configurable; use a model supporti
 python -m veritas "Compare vector databases for RAG" --mode live --json
 ```
 
-Wikipedia and GitHub use public REST endpoints; Tavily Search uses basic search, with automatic depth selection disabled to limit credit use. Without Tavily, general research coverage is limited; without Groq, live answers use a deterministic evidence fallback. Live mode **never** silently falls back to fixtures. On 2026-11-27, the public site and `cp30-prototype` API loaded and accepted controlled live queries with both providers configured. See [evaluation notes](docs/EVALUATION.md) and [final live vector report](samples/live-vector.json) / [final live HR report](samples/live-hr.json) for the observed gaps; successful provider calls do not establish answer correctness. API access, quotas, and billing remain the operator's responsibility. `docs/live-network-check.json` is a historical failed-network run, not the current availability result.
+Wikipedia and GitHub use public REST endpoints; Tavily Search uses basic search, with automatic depth selection disabled to limit credit use. Without Tavily, general research coverage is limited; without Groq, live answers use a deterministic evidence fallback. Live mode **never** silently falls back to fixtures. The [deployed app](https://veritas-research-agent.vercel.app) and `cp30-prototype` API are live. See [evaluation notes](docs/EVALUATION.md) for bounded live results, including a complete multi-agent run and partial memory/unseen runs; provider calls and model review do not establish answer correctness. API access, quotas, and billing remain the operator's responsibility. `docs/live-network-check.json` is a historical failed-network run, not the current availability result.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ veritas/     contracts, planner, adapters, fixture corpus, model, agent, CLI
 tests/       deterministic and mocked adapter regression tests
 evaluate.py  11 scenario checks; writes samples and evaluation results
 baseline.py single-tool comparison on the same fixture inputs
-samples/    offline scenario reports, final live HR/vector runs, total-outage report
+samples/    offline scenarios plus live complete, partial and failure reports
 docs/       evaluation, checkpoints, logs, walkthrough script
 .github/    CI workflow
 ```
@@ -91,7 +91,7 @@ See [evaluation notes](docs/EVALUATION.md), [machine-readable offline results](d
 
 ## Demo and submission
 
-The repository includes a timed recording script in [docs/DEMO.md](docs/DEMO.md). No screen recording is included; recording and hosting a 3–5 minute demo remains a manual submission step. The script distinguishes live research from simulated failure cases.
+The repository includes an exact 4-minute recording script in [docs/DEMO.md](docs/DEMO.md). No screen recording is included; recording and hosting a 3–5 minute demo remains a manual submission step. The script demonstrates a complete live multi-agent research run and a clearly labeled simulated outage.
 
 
 ## Web workspace / Vercel
@@ -108,13 +108,22 @@ Deployment: import this repository into Vercel; the root `vercel.json` configure
 
 Adding either provider key enables public live research with no access code; add both for broad web search and model-assisted evidence selection. The default open-weight GPT-OSS 120B model is hosted by Groq and uses only GROQ_API_KEY; GROQ_MODEL can override it with another supported JSON-mode model. Keys remain server-side. Per-run limits remain in place, but there is no distributed rate limiting or authentication: configure provider quotas/spend limits and Vercel abuse protections before sharing widely. Demo mode remains available. Historical evaluation metrics are fixture-based, not factual-accuracy claims.
 
-Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs the complete regression suite.
+Web boundary regression checks are included in `tests/test_web.py`; `python -m unittest discover -s tests -v` runs the complete regression suite (72 tests in the final run).
 
 ## Production diagnostics
 
 Public live requests expose a per-run `run_id`, stage/error counts, token usage reported by Groq, and a conservative estimated basic Tavily search/extract credit count. Enable **Include retained evidence snapshot** to export evidence text with stable passage IDs. Vercel runtime logs contain only bounded numeric/status summaries, no questions, URLs, prompts or evidence. Provider billing, rate limiting and durable telemetry storage are not implemented. See [research engine and evaluation](docs/RESEARCH_V2.md).
 
 **Groq quota controls:** `GROQ_AUX_MODEL` (optional, defaults to `openai/gpt-oss-20b`) handles planning/review; `GROQ_MODEL` (default `openai/gpt-oss-120b`) handles synthesis. Evidence context is capped and compacted, reviewer inputs deduplicated, and rate-limit headers surfaced. Rate-limit failures stop additional model calls instead of retrying blindly. Actual organization quotas are account-specific.
+
+### Submission sample outputs
+
+- [Complete live multi-agent research](samples/live-success-multiagent.json): complete status, 2/2 requested benefit/risk facets, linked citations; see the manual spot-check caveat in the evaluation.
+- [Partial live agent-memory research](samples/live-partial-memory.json): five approaches were proposed, but claim validation rejected all proposals.
+- [Partial live unseen comparison](samples/live-partial-unseen.json): REST, GraphQL and gRPC were all tracked; GraphQL and gRPC received reviewed claims, while REST remained unsupported.
+- [Simulated total-outage report](samples/failure-simulated-outage.json): final offline implementation, no accepted evidence, bounded failure trace.
+
+The older `samples/live-vector.json` and `samples/live-hr.json` are CP31 diagnostic runs before the final recovery-query refinements. They are retained to show the original gaps and are not presented as outputs from the final release.
 
 ### Prototype report metrics
 Live reports distinguish heuristic confidence, evidence status (model-reviewed / retrieved only / no evidence), citation linkage, criterion and candidate coverage, and provider health. None is an independent truth check. Numbered lists use a compact eligibility/positioning rubric (plus tradeoffs for comparisons), with explicit question constraints still required. A reviewer may correct a claim's criterion but cannot rewrite the claim or change its citations. No extra services or infrastructure are used.

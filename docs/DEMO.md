@@ -1,34 +1,34 @@
-# 3–5 minute recording guide
+# 4-minute recording script
 
-No recording is included in this repository. Record and host the video manually before submission. Use the live site at https://veritas-research-agent.vercel.app and avoid displaying API keys, browser developer secrets, or personal account information.
+No recording is included in this repository. Record and host the video manually before submission. Use https://veritas-research-agent.vercel.app. The browser-origin approval was declined during this task, so test the page visually when recording. Do not display API keys or account details.
 
-## Suggested 4-minute run
+## Script
 
 ### 0:00–0:30 — Problem and scope
 
-“Veritas is a bounded research agent. It turns a question into a plan, uses read-only search tools, filters evidence, and returns claims linked to source passages. It is a focused single-agent prototype, not a general production platform.”
+“Veritas is a bounded read-only research agent. It adapts tool searches to the question, links claims to retrieved passages, and shows what it could not verify. This is a single-agent assignment prototype, not an autonomous production research service.”
 
-### 0:30–1:00 — Architecture
+### 0:30–1:00 — Architecture and orchestration
 
-Open the Architecture tab. Point out intent planning, Tavily search and selective extraction, GitHub/Wikipedia routing, passage indexing, separate claim review, coverage accounting, and bounded recovery. Mention that live calls are capped and rate-limit errors stop further model calls.
+Open Architecture. Point out the intent planner, Tavily search and selective extraction, GitHub/Wikipedia routing, passage index, separate claim review, coverage matrix and one bounded recovery pass. Show the per-run trace and mention the caps: five searches, one extraction batch and five model calls. Explain that rate limits stop further model calls.
 
-### 1:00–2:20 — Live research
+### 1:00–2:15 — Live happy-path candidate
 
-Select Live mode and run: “Compare the top 3 open-source vector databases for a startup building RAG products.” Show the returned short answer, confidence, candidate/criterion coverage, limitations, citations, and one supporting passage. Open Plan and Trace to show the actual queries, rejected claims, recovery decision, provider health, latency, and token use. Explain that “medium/low” is a transparent heuristic, not a probability, and that a model-reviewed citation is not proof of truth. Use the committed live sample only if provider quota temporarily blocks a fresh run, and label it as a saved observation.
+Choose Live mode and run: “Research the pros and cons of using a multi-agent architecture for customer support automation.” Show the complete status, medium heuristic confidence, benefit/risk coverage, cited claims and one source passage. Open Plan and Trace to show actual searches, review, source IDs, token use and latency. Say: “This is the best complete live run in the bounded sample. Confidence is a workflow label, not probability. Model review does not prove truth; manual spot-check found one case-study result was generalized and another claim adds an unsupported misrouting risk, which I documented.”
 
-### 2:20–3:10 — Failure handling
+### 2:15–3:05 — Failure handling
 
-Switch to Demo mode, choose the total outage simulation, and run a vector-database question. Show the insufficient-evidence response and trace. Explain that the deterministic fault lab uses authored fixtures and does not consume provider credits.
+Switch to Demo mode and run the total retrieval outage scenario. Show insufficient evidence, zero factual claims and the bounded trace. Explain this is an offline deterministic simulation and consumes no live search quota.
 
-### 3:10–4:00 — Evaluation and limits
+### 3:05–4:00 — Evaluation and tradeoffs
 
-Open Evaluation and show the 68 regression tests and 11 offline scenario checks (update counts if they change). Point to the evaluation report for live runs and known failures. Close by noting that the live sample shows incomplete research; more human-reviewed evidence and repeated live evaluations are needed before relying on answers.
+Open Evaluation and show 72 regression tests and 11 offline scenarios. Briefly point to the partial memory and unseen samples: the system withholds unsupported claims and reports missing criteria. Close: “The take-home is functional and deployed, but vector tradeoffs and HR eligibility remain incomplete, and the live unseen comparison still lacks REST evidence. The recording is the remaining submission step.”
 
 ## Recording checklist
 
 - Keep the finished video between 3 and 5 minutes.
-- Show both a live request and a simulated failure, clearly labeled.
-- Show at least one source URL and its supporting passage.
-- Show confidence separately from evidence/coverage metrics.
-- Do not describe a partial answer as a successful complete comparison.
+- Show a fresh live run if provider quotas allow; otherwise use the committed report and say it is saved evidence.
+- Show at least one source and its supporting passage, plus the plan/trace.
+- Show a clearly labeled simulated outage.
+- State the partial research gaps and heuristic confidence caveat.
 - Publish the real recording and add its viewable link to the submission package.
