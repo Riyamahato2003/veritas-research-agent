@@ -2,15 +2,10 @@
 
 | Checkpoint | Status | Evidence |
 |---|---|---|
-| CP1 Contracts and architecture | Complete | `veritas/contracts.py`, README |
-| CP2 Planner and tool selection | Complete | `veritas/planner.py` |
-| CP3 Research adapters | Implemented; live blocked | `veritas/tools.py`, `fixtures.json`, live-network-check.json |
-| CP4 Synthesis and citation gate | Complete offline/mock | `veritas/model.py`, `agent.py` |
-| CP5 Reliability and tracing | Complete within scope | bounded retries, malformed result handling, fault lab, trace |
-| CP6 Evaluation | Complete offline | 23 unit/adapter tests, 11 scenarios, baseline |
-| CP7 CLI and outputs | Complete | `python -m veritas`, 3 generated reports |
-| CP8 Docs and demo | Complete local files | README, evaluation, script; separate MP4 |
-| CP9 Repository | Local Git repository complete; remote pending | Git history and bundle; external GitHub repository creation/push and demo hosting pending |
+| CP1–7 Core agent | Implemented | Contracts, planner, bounded tools, offline demo and fault lab |
+| CP8 Docs and demo | Script prepared; recording pending | README, evaluation, manual recording guide; no MP4 is included |
+| CP9 Repository and deployment | Existing public GitHub repo and Vercel app verified | Live site/API checked on 2026-11-27; final change deployment is tracked separately below |
+| CP10–30 Research iterations | Historical checkpoints retained | See sections below and `docs/RESEARCH_V2.md` |
 
 Actual Git commits represent grouped checkpoints, not fictional historical milestones. No external services were deployed.
 
@@ -46,3 +41,6 @@ New live pipeline with intent decomposition, provider-score ranking, bounded Tav
 
 ## CP26–30 — prototype reporting and quality polish
 Separate citation linkage, evidence review status, candidate discovery/review, facet coverage and provider health. Correct requirement assignment in the existing review pass, simplify numbered-list rubric, prefer atomic claims, and explain partial answers directly in the UI. Preserve the original demo and provider budgets. No production infrastructure expansion.
+
+## CP31 — Live audit, entity attribution and confidence
+On 2026-11-27, verified that the deployed `cp30-prototype` API and both providers were available. A live vector database run discovered three candidates but covered only 5/9 requested criterion slots; zero candidates were fully covered. Manual passage inspection found that a Qdrant claim cited an anaphoric “It indexes…” passage from a source section about LanceDB. A separate HR-tech run found four candidates with reviewed claims out of five, three fully covered, and only four entities in its short answer. Provider calls succeeded in both runs. Added a deterministic per-passage candidate attribution gate, a confidence heuristic that stays low when coverage is incomplete or provider health is degraded, and a visible confidence metric in the UI. These checks reduce one observed attribution failure but do not establish general semantic entailment or factual accuracy.

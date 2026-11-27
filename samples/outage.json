@@ -53,6 +53,7 @@
     {
       "stage": "retrieve",
       "tool": "github",
+      "query": "vector database",
       "attempt": 1,
       "status": "error",
       "error": "simulated_timeout",
@@ -61,6 +62,7 @@
     {
       "stage": "retrieve",
       "tool": "github",
+      "query": "vector database",
       "attempt": 2,
       "status": "error",
       "error": "simulated_timeout",
@@ -69,6 +71,7 @@
     {
       "stage": "retrieve",
       "tool": "web",
+      "query": "vector database",
       "attempt": 1,
       "status": "error",
       "error": "simulated_timeout",
@@ -77,6 +80,7 @@
     {
       "stage": "retrieve",
       "tool": "web",
+      "query": "vector database",
       "attempt": 2,
       "status": "error",
       "error": "simulated_timeout",
@@ -85,6 +89,7 @@
     {
       "stage": "retrieve",
       "tool": "wiki",
+      "query": "vector database",
       "attempt": 1,
       "status": "error",
       "error": "simulated_timeout",
@@ -93,6 +98,7 @@
     {
       "stage": "retrieve",
       "tool": "wiki",
+      "query": "vector database",
       "attempt": 2,
       "status": "error",
       "error": "simulated_timeout",
@@ -101,11 +107,12 @@
     {
       "stage": "replan",
       "status": "triggered",
-      "reason": "unique evidence count below target"
+      "reason": "Recovery: broaden search after insufficient evidence"
     },
     {
       "stage": "retrieve",
       "tool": "github",
+      "query": "databases open products rag source vector",
       "attempt": 1,
       "status": "error",
       "error": "simulated_timeout",
@@ -114,6 +121,7 @@
     {
       "stage": "retrieve",
       "tool": "github",
+      "query": "databases open products rag source vector",
       "attempt": 2,
       "status": "error",
       "error": "simulated_timeout",
@@ -129,7 +137,13 @@
     {
       "stage": "synthesis",
       "status": "not_requested",
-      "findings": 0
+      "findings": 0,
+      "model_selected": 0,
+      "supplemented": 0,
+      "analysis_items": 0,
+      "reviewed_claims": 0,
+      "coverage": 0,
+      "target": 3
     },
     {
       "stage": "verify",
@@ -141,7 +155,21 @@
   "metrics": {
     "tool_attempts": 8,
     "model_calls": 0,
-    "elapsed_ms": 304,
-    "citation_integrity": true
-  }
+    "elapsed_ms": 312,
+    "citation_integrity": true,
+    "evidence_retained": 0,
+    "model_selected": 0,
+    "analysis_items": 0,
+    "distinct_candidates": 0,
+    "coverage": 0,
+    "coverage_target": 3,
+    "claims_proposed": 0,
+    "claims_accepted": 0,
+    "claims_rejected": 0
+  },
+  "analysis": [],
+  "comparison": [],
+  "sections": [],
+  "research_intent": {},
+  "coverage_details": {}
 }

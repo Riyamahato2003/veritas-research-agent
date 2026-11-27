@@ -195,7 +195,14 @@ def validate(proposal,index,intent,allowed):
             pids=list(dict.fromkeys(pids)); passages=[index.passages[p] for p in pids]
             combined=' '.join(p.text for p in passages)
             titles=' '.join(index.sources[p.source_id].title for p in passages)
-            if cat=='candidate' and key(label) not in key(combined): reject('entity_not_in_evidence'); continue
+            if cat=='candidate':
+                if key(label) not in key(combined): reject('entity_not_in_evidence'); continue
+                # Every passage for a candidate-specific claim must identify that
+                # candidate itself (or do so in its source title). A neighboring
+                # sentence such as "It indexes vectors..." can otherwise be
+                # misattributed to the preceding table row or section heading.
+                if any(key(label) not in key(p.text+' '+index.sources[p.source_id].title) for p in passages):
+                    reject('passage_entity_mismatch'); continue
             # Guard common relationship overstatements before semantic review.
             # This is a conservative lexical check, not a general entailment test.
             qualifiers=((r'\bheadquarter\w*\b',r'\bheadquarter\w*\b'),

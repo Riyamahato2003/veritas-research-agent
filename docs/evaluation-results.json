@@ -6,10 +6,10 @@
     "expected": "Three candidates; ranking withheld",
     "pass": true,
     "status": "partial",
-    "confidence": "medium",
+    "confidence": "low",
     "source_count": 6,
     "tool_attempts": 3,
-    "elapsed_ms": 5
+    "elapsed_ms": 1
   },
   {
     "id": "hr",
@@ -21,7 +21,7 @@
     "confidence": "medium",
     "source_count": 5,
     "tool_attempts": 2,
-    "elapsed_ms": 2
+    "elapsed_ms": 0
   },
   {
     "id": "architecture",
@@ -33,7 +33,7 @@
     "confidence": "medium",
     "source_count": 3,
     "tool_attempts": 3,
-    "elapsed_ms": 2
+    "elapsed_ms": 1
   },
   {
     "id": "memory",
@@ -45,7 +45,7 @@
     "confidence": "medium",
     "source_count": 3,
     "tool_attempts": 3,
-    "elapsed_ms": 2
+    "elapsed_ms": 1
   },
   {
     "id": "unknown",
@@ -57,7 +57,7 @@
     "confidence": "low",
     "source_count": 0,
     "tool_attempts": 3,
-    "elapsed_ms": 2
+    "elapsed_ms": 0
   },
   {
     "id": "timeout",
@@ -69,7 +69,7 @@
     "confidence": "low",
     "source_count": 4,
     "tool_attempts": 4,
-    "elapsed_ms": 151
+    "elapsed_ms": 154
   },
   {
     "id": "outage",
@@ -81,7 +81,7 @@
     "confidence": "low",
     "source_count": 0,
     "tool_attempts": 8,
-    "elapsed_ms": 304
+    "elapsed_ms": 312
   },
   {
     "id": "malformed",
@@ -102,7 +102,7 @@
     "expected": "Reject hostile result",
     "pass": true,
     "status": "partial",
-    "confidence": "medium",
+    "confidence": "low",
     "source_count": 6,
     "tool_attempts": 3,
     "elapsed_ms": 2
@@ -114,7 +114,7 @@
     "expected": "Reject unrelated result",
     "pass": true,
     "status": "partial",
-    "confidence": "medium",
+    "confidence": "low",
     "source_count": 6,
     "tool_attempts": 3,
     "elapsed_ms": 2
@@ -126,9 +126,9 @@
     "expected": "Recover on second attempt",
     "pass": true,
     "status": "partial",
-    "confidence": "medium",
+    "confidence": "low",
     "source_count": 6,
     "tool_attempts": 6,
-    "elapsed_ms": 153
+    "elapsed_ms": 158
   }
 ]

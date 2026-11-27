@@ -213,6 +213,9 @@ def run(question, mode='demo', fault='none', use_model=True, adapters=None, mode
         limits.append('Requested result count exceeds usable evidence count; coverage is incomplete.'); status='partial' if findings else status; confidence='low'
     if mode=='live' and 'web' not in available: limits.append('Broad web search disabled; configure TAVILY_API_KEY for general research.'); status='partial' if findings else status; confidence='low'
     if status=='partial' and len(sources)<2: confidence='low'
+    # Confidence is a coarse workflow heuristic. Any partial/insufficient
+    # report stays low even when several exact citations are available.
+    if status!='complete': confidence='low'
     if sections:
         short=' '.join(s['claims'][0]['statement']+' ['+s['claims'][0]['source_ids'][0]+']' for s in sections[:3])
     elif mode=='live':
